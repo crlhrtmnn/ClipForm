@@ -1,0 +1,15 @@
+{
+	"/": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/templates": [
+		"src/routes/+layout.ts"
+	],
+	"/templates/new": [
+		"src/routes/+layout.ts"
+	],
+	"/templates/[id]": [
+		"src/routes/+layout.ts"
+	]
+}
