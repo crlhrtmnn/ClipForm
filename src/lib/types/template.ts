@@ -87,6 +87,7 @@ export interface Template {
 	starred: boolean;
 	category?: string;
 	tags?: string[];
+	exampleText?: string; // Custom example text for preview
 	createdAt: string; // ISO timestamp
 	updatedAt: string; // ISO timestamp
 	usageCount: number;

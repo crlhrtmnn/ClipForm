@@ -102,8 +102,8 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-6">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Templates</h1>
-			<p class="text-gray-600 mt-1">Manage your text transformation templates</p>
+			<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Templates</h1>
+			<p class="text-gray-600 dark:text-gray-400 mt-1">Manage your text transformation templates</p>
 		</div>
 		<button
 			onclick={() => goto('/templates/new')}
@@ -115,7 +115,7 @@
 	</div>
 
 	<!-- Search and Filters -->
-	<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<!-- Search -->
 			<div class="relative">
@@ -127,7 +127,7 @@
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Search templates..."
-					class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+					class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
 				/>
 			</div>
 
@@ -135,7 +135,7 @@
 			<div>
 				<select
 					bind:value={selectedCategory}
-					class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+					class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
 				>
 					<option value="">All Categories</option>
 					{#each categories as category}
@@ -149,14 +149,14 @@
 		<div class="flex items-center gap-2 mt-4">
 			<button
 				onclick={handleExport}
-				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
 			>
 				<Download size={16} />
 				Export All
 			</button>
 			<button
 				onclick={handleImport}
-				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
 			>
 				<Upload size={16} />
 				Import
@@ -166,8 +166,8 @@
 
 	<!-- Templates Grid -->
 	{#if filteredTemplates.length === 0}
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-			<p class="text-gray-500 mb-4">No templates found</p>
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+			<p class="text-gray-500 dark:text-gray-400 mb-4">No templates found</p>
 			<button
 				onclick={() => goto('/templates/new')}
 				class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -179,15 +179,12 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each filteredTemplates as template (template.id)}
-				<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
 					<!-- Header -->
 					<div class="flex items-start justify-between mb-3">
 						<div class="flex-1">
 							<div class="flex items-center gap-2">
-								<h3 class="text-lg font-semibold text-gray-900">{template.name}</h3>
-								{#if template.starred}
-									<Star size={16} class="fill-yellow-400 text-yellow-400" />
-								{/if}
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{template.name}</h3>
 							</div>
 							{#if template.category}
 								<span
@@ -207,10 +204,10 @@
 					</div>
 
 					<!-- Description -->
-					<p class="text-sm text-gray-600 mb-3">{template.description}</p>
+					<p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{template.description}</p>
 
 					<!-- Metadata -->
-					<div class="flex items-center gap-4 text-xs text-gray-500 mb-4">
+					<div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-4">
 						<span>{template.transformations.length} transformation(s)</span>
 						<span>Used {template.usageCount} time(s)</span>
 					</div>
@@ -219,7 +216,7 @@
 					{#if template.tags && template.tags.length > 0}
 						<div class="flex flex-wrap gap-1 mb-4">
 							{#each template.tags as tag}
-								<span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">{tag}</span>
+								<span class="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">{tag}</span>
 							{/each}
 						</div>
 					{/if}
@@ -228,21 +225,21 @@
 					<div class="flex items-center gap-2">
 						<button
 							onclick={() => goto(`/templates/${template.id}`)}
-							class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100"
+							class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50"
 						>
 							<Edit size={14} />
 							Edit
 						</button>
 						<button
 							onclick={() => handleDuplicate(template.id)}
-							class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100"
+							class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600"
 							title="Duplicate"
 						>
 							<Copy size={14} />
 						</button>
 						<button
 							onclick={() => handleDelete(template.id, template.name)}
-							class="flex items-center justify-center px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+							class="flex items-center justify-center px-3 py-1.5 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50"
 							title="Delete"
 						>
 							<Trash2 size={14} />

@@ -1,282 +1,255 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { templateStore, starredTemplates, recentTemplatesStore } from '$lib/stores/templateStore';
-	import { clipboardStore, canAutoRead, canWrite } from '$lib/stores/clipboardStore';
+	import { templateStore, starredTemplates, recentTemplates, recentTemplatesStore } from '$lib/stores/templateStore';
 	import { toast } from '$lib/stores/uiStore';
-	import { readClipboard, writeClipboard, copyWithFallback } from '$lib/services/clipboardService';
+	import { readClipboard, copyWithFallback } from '$lib/services/clipboardService';
 	import { applyTransformations } from '$lib/services/transformEngine';
 	import type { Template } from '$lib/types/template';
-	import { Search, Copy, Clipboard, Star } from 'lucide-svelte';
+	import { Plus, Settings, RotateCcw, Command } from 'lucide-svelte';
+	import TemplateCard from '$lib/components/ui/TemplateCard.svelte';
+	import CommandPalette from '$lib/components/ui/CommandPalette.svelte';
+	import ResultArea from '$lib/components/ui/ResultArea.svelte';
 
-	let searchQuery = $state('');
-	let selectedTemplate = $state<Template | null>(null);
-	let inputText = $state('');
-	let outputText = $state('');
-	let isProcessing = $state(false);
-	let lastProcessedInput = $state('');
+	// State
+	let isPaletteOpen = $state(false);
+	let lastUsedTemplate = $state<Template | null>(null);
+	let resultVisible = $state(false);
+	let resultInput = $state('');
+	let resultOutput = $state('');
+	let resultTemplateName = $state('');
+	let isRepeatProcessing = $state(false);
 
-	// Get filtered templates based on search
-	$effect(() => {
-		if (searchQuery.trim()) {
-			filteredTemplates = templateStore.search(searchQuery);
-		} else {
-			filteredTemplates = $templateStore;
-		}
-	});
+	// Get all templates
+	const allTemplates = $derived($templateStore);
 
-	let filteredTemplates = $state<Template[]>($templateStore);
-
-	// Auto-transform when input text changes (with debounce)
-	let debounceTimeout: NodeJS.Timeout | null = null;
-	$effect(() => {
-		// Only auto-process if we have both template and text, and text has changed
-		if (selectedTemplate && inputText.trim() && inputText !== lastProcessedInput && !isProcessing) {
-			if (debounceTimeout) {
-				clearTimeout(debounceTimeout);
-			}
-
-			// Debounce for 300ms to avoid processing while user is still typing/pasting
-			debounceTimeout = setTimeout(() => {
-				processText();
-			}, 300);
-		}
-
-		// Cleanup
-		return () => {
-			if (debounceTimeout) {
-				clearTimeout(debounceTimeout);
-			}
-		};
-	});
-
-	// Auto-read clipboard when template is selected (if permission granted)
-	async function selectTemplate(template: Template) {
-		selectedTemplate = template;
-
-		if ($canAutoRead && $clipboardStore.mode === 'auto') {
-			try {
-				inputText = await readClipboard();
-				await processText();
-			} catch (error) {
-				toast.error((error as Error).message);
-				// Fall back to manual paste
-			}
-		}
+	// Handle transformation result from TemplateCard or CommandPalette
+	function handleTransformResult(result: { input: string; output: string; template: Template }) {
+		lastUsedTemplate = result.template;
+		resultInput = result.input;
+		resultOutput = result.output;
+		resultTemplateName = result.template.name;
+		resultVisible = true;
 	}
 
-	// Process text through selected template
-	async function processText() {
-		if (!selectedTemplate || !inputText.trim()) {
-			toast.error('Please select a template and enter text');
-			return;
-		}
+	// Repeat last transformation
+	async function repeatLastTransformation() {
+		if (!lastUsedTemplate || isRepeatProcessing) return;
 
-		isProcessing = true;
+		isRepeatProcessing = true;
 
 		try {
-			// Apply transformations
-			outputText = applyTransformations(inputText, selectedTemplate.transformations);
+			// Read clipboard
+			const input = await readClipboard();
 
-			// Track what we just processed
-			lastProcessedInput = inputText;
+			if (!input.trim()) {
+				toast.warning('Clipboard is empty');
+				isRepeatProcessing = false;
+				return;
+			}
 
-			// Increment usage count
-			templateStore.incrementUsageCount(selectedTemplate.id);
+			// Apply transformation
+			const output = applyTransformations(input, lastUsedTemplate.transformations);
 
-			// Add to recent
-			recentTemplatesStore.add(selectedTemplate.id);
+			// Copy result to clipboard
+			const copied = await copyWithFallback(output);
 
-			// Auto-copy if enabled
-			if ($clipboardStore.capabilities?.autoCopyResult !== false) {
-				const copied = await copyWithFallback(outputText);
-				if (copied) {
-					toast.success('Transformed and copied to clipboard!');
-				} else {
-					toast.success('Text transformed! Click Copy to copy result.');
-				}
+			// Update usage stats
+			templateStore.incrementUsageCount(lastUsedTemplate.id);
+			recentTemplatesStore.add(lastUsedTemplate.id);
+
+			// Update result area
+			resultInput = input;
+			resultOutput = output;
+			resultTemplateName = lastUsedTemplate.name;
+			resultVisible = true;
+
+			// Show success toast
+			if (copied) {
+				toast.success(`Transformed and copied!`);
 			} else {
-				toast.success('Text transformed successfully!');
+				toast.info('Transformed! Click Copy to copy result.');
 			}
 		} catch (error) {
-			toast.error('Error processing text: ' + (error as Error).message);
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error('Failed to transform');
+			}
 		} finally {
-			isProcessing = false;
+			isRepeatProcessing = false;
 		}
 	}
 
-	// Manual copy
-	async function copyOutput() {
-		if (!outputText.trim()) {
-			toast.error('No output to copy');
-			return;
+	// Hide result area
+	function hideResult() {
+		resultVisible = false;
+	}
+
+	// Keyboard shortcuts
+	function handleKeyDown(e: KeyboardEvent) {
+		// Cmd+K or Ctrl+K to open palette
+		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+			e.preventDefault();
+			isPaletteOpen = true;
 		}
 
-		try {
-			const success = await copyWithFallback(outputText);
-			if (success) {
-				toast.success('Copied to clipboard!');
-			} else {
-				toast.error('Failed to copy to clipboard');
+		// Cmd+Enter or Ctrl+Enter to repeat last
+		if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && lastUsedTemplate) {
+			e.preventDefault();
+			repeatLastTransformation();
+		}
+
+		// Escape to hide result or close palette
+		if (e.key === 'Escape') {
+			if (isPaletteOpen) {
+				isPaletteOpen = false;
+			} else if (resultVisible) {
+				resultVisible = false;
 			}
-		} catch (error) {
-			toast.error('Failed to copy: ' + (error as Error).message);
 		}
 	}
 
-	// Clear all
-	function clear() {
-		inputText = '';
-		outputText = '';
-		selectedTemplate = null;
-	}
+	// Check for last used template from recent templates on mount
+	$effect(() => {
+		if (!lastUsedTemplate && $recentTemplates.length > 0) {
+			lastUsedTemplate = $recentTemplates[0];
+		}
+	});
+
+	// Platform detection for keyboard shortcut display
+	const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+	const modKey = isMac ? '⌘' : 'Ctrl';
 </script>
 
-<div class="max-w-6xl mx-auto">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900 mb-2">Text Converter</h1>
-		<p class="text-gray-600">
-			Select a template to quickly transform your text. {$canAutoRead
-				? 'Text will be auto-read from clipboard.'
-				: 'Paste your text manually.'}
-		</p>
-	</div>
+<svelte:window onkeydown={handleKeyDown} />
 
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-		<!-- Template Selector -->
-		<div class="lg:col-span-1">
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<h2 class="text-lg font-semibold mb-4">Select Template</h2>
-
-				<!-- Search -->
-				<div class="relative mb-4">
-					<Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-					<input
-						type="text"
-						bind:value={searchQuery}
-						placeholder="Search templates..."
-						class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					/>
-				</div>
-
-				<!-- Starred Templates -->
-				{#if $starredTemplates.length > 0 && !searchQuery}
-					<div class="mb-4">
-						<h3 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-							<Star size={14} class="fill-yellow-400 text-yellow-400" />
-							Starred
-						</h3>
-						<div class="space-y-1">
-							{#each $starredTemplates as template}
-								<button
-									onclick={() => selectTemplate(template)}
-									class="w-full text-left px-3 py-2 rounded-md text-sm {selectedTemplate?.id ===
-									template.id
-										? 'bg-blue-100 text-blue-700'
-										: 'hover:bg-gray-100 text-gray-700'}"
-								>
-									<div class="font-medium">{template.name}</div>
-									<div class="text-xs text-gray-500">{template.description}</div>
-								</button>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				<!-- All Templates -->
-				<div>
-					<h3 class="text-sm font-medium text-gray-700 mb-2">
-						{searchQuery ? 'Search Results' : 'All Templates'}
-					</h3>
-					<div class="space-y-1 max-h-96 overflow-y-auto">
-						{#each filteredTemplates as template}
-							<button
-								onclick={() => selectTemplate(template)}
-								class="w-full text-left px-3 py-2 rounded-md text-sm {selectedTemplate?.id ===
-								template.id
-									? 'bg-blue-100 text-blue-700'
-									: 'hover:bg-gray-100 text-gray-700'}"
-							>
-								<div class="flex items-center justify-between">
-									<div class="font-medium">{template.name}</div>
-									{#if template.starred}
-										<Star size={14} class="fill-yellow-400 text-yellow-400" />
-									{/if}
-								</div>
-								<div class="text-xs text-gray-500">{template.description}</div>
-							</button>
-						{:else}
-							<p class="text-sm text-gray-500 py-4 text-center">No templates found</p>
-						{/each}
-					</div>
-				</div>
-			</div>
+<div class="max-w-4xl mx-auto">
+	<!-- Header -->
+	<div class="flex items-center justify-between mb-8">
+		<div>
+			<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Text Converter</h1>
+			<p class="text-gray-500 dark:text-gray-400 text-sm">
+				Click a template to transform clipboard text instantly
+			</p>
 		</div>
 
-		<!-- Input/Output -->
-		<div class="lg:col-span-2 space-y-4">
-			<!-- Input -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center justify-between mb-2">
-					<h2 class="text-lg font-semibold">Input</h2>
-					<button
-						onclick={async () => {
-							try {
-								inputText = await readClipboard();
-								toast.success('Text pasted from clipboard');
-							} catch (error) {
-								toast.error('Failed to read clipboard');
-							}
-						}}
-						class="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md"
-					>
-						<Clipboard size={16} />
-						Paste
-					</button>
-				</div>
-				<textarea
-					bind:value={inputText}
-					placeholder="Paste or type your text here..."
-					class="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-				></textarea>
-			</div>
+		<div class="flex items-center gap-2">
+			<button
+				onclick={() => isPaletteOpen = true}
+				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+				title="Search all templates ({modKey}+K)"
+			>
+				<Command size={16} />
+				<span class="hidden sm:inline">{modKey}+K</span>
+			</button>
 
-			<!-- Action Buttons -->
-			<div class="flex items-center gap-2">
-				<button
-					onclick={processText}
-					disabled={!selectedTemplate || !inputText.trim() || isProcessing}
-					class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-				>
-					{isProcessing ? 'Processing...' : 'Transform'}
-				</button>
-				<button
-					onclick={clear}
-					class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-				>
-					Clear
-				</button>
-			</div>
+			<a
+				href="/templates/new"
+				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+			>
+				<Plus size={16} />
+				<span class="hidden sm:inline">New</span>
+			</a>
 
-			<!-- Output -->
-			{#if outputText}
-				<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-					<div class="flex items-center justify-between mb-2">
-						<h2 class="text-lg font-semibold">Output</h2>
-						<button
-							onclick={copyOutput}
-							class="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md"
-						>
-							<Copy size={16} />
-							Copy
-						</button>
-					</div>
-					<div
-						class="w-full min-h-48 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm whitespace-pre-wrap"
-					>
-						{outputText}
-					</div>
-				</div>
-			{/if}
+			<a
+				href="/templates"
+				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+			>
+				<Settings size={16} />
+				<span class="hidden sm:inline">Manage</span>
+			</a>
 		</div>
 	</div>
+
+	<!-- Repeat Last Bar -->
+	{#if lastUsedTemplate}
+		<div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<RotateCcw size={18} class="text-gray-400 dark:text-gray-500" />
+					<div>
+						<span class="text-sm text-gray-500 dark:text-gray-400">Repeat last:</span>
+						<span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-1">{lastUsedTemplate.name}</span>
+					</div>
+				</div>
+
+				<button
+					onclick={repeatLastTransformation}
+					disabled={isRepeatProcessing}
+					class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait transition-colors"
+				>
+					{#if isRepeatProcessing}
+						<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+						Processing...
+					{:else}
+						Apply
+						<kbd class="ml-1 px-1.5 py-0.5 bg-blue-500 rounded text-xs">{modKey}+Enter</kbd>
+					{/if}
+				</button>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Starred Templates Section -->
+	{#if $starredTemplates.length > 0}
+		<div class="mb-8">
+			<h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+				Your Templates
+			</h2>
+
+			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+				{#each $starredTemplates as template (template.id)}
+					<TemplateCard {template} onTransform={handleTransformResult} />
+				{/each}
+			</div>
+		</div>
+	{:else}
+		<!-- Empty state -->
+		<div class="mb-8 p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center">
+			<p class="text-gray-500 dark:text-gray-400 mb-4">
+				No starred templates yet. Star your favorites for quick access!
+			</p>
+			<div class="flex items-center justify-center gap-4">
+				<a
+					href="/templates"
+					class="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+				>
+					Browse Templates
+				</a>
+				<button
+					onclick={() => isPaletteOpen = true}
+					class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+				>
+					Search ({modKey}+K)
+				</button>
+			</div>
+		</div>
+	{/if}
+
+	
+	<!-- Result Area -->
+	<ResultArea
+	visible={resultVisible}
+	templateName={resultTemplateName}
+	input={resultInput}
+	output={resultOutput}
+	onHide={hideResult}
+	/>
+	<!-- Search Hint -->
+	<div class="m-8 text-center">
+		<button
+			onclick={() => isPaletteOpen = true}
+			class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+		>
+			<Command size={16} />
+			Press <kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs font-medium">{modKey}+K</kbd> to search all templates
+		</button>
+	</div>
+
+	<!-- Command Palette -->
+	<CommandPalette
+		open={isPaletteOpen}
+		templates={allTemplates}
+		onClose={() => isPaletteOpen = false}
+		onTransform={handleTransformResult}
+	/>
 </div>

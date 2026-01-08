@@ -1,3 +1,52 @@
+# Markdown Text Converter
+
+A SvelteKit app for quickly transforming text using customizable templates. One-click clipboard-to-clipboard conversion.
+
+## Project Overview
+
+**Stack:** SvelteKit + Svelte 5 (runes) + Tailwind CSS v4 + Bun + adapter-static
+
+**Core Purpose:** Users copy text → click a template → text is transformed and copied back to clipboard instantly.
+
+## Architecture
+
+### Main Page (`src/routes/+page.svelte`)
+- **Dashboard layout** with template cards as primary UI
+- **"Repeat Last" bar** for batch processing (1-click repeat)
+- **Keyboard shortcuts:** `Cmd+K` (search), `Cmd+Enter` (repeat), `Escape` (close)
+- **Hidden result area** that appears only after transformation
+
+### Key Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `TemplateCard` | `src/lib/components/ui/TemplateCard.svelte` | Clickable card that reads clipboard, transforms, copies result |
+| `CommandPalette` | `src/lib/components/ui/CommandPalette.svelte` | `Cmd+K` searchable template browser with keyboard navigation |
+| `ResultArea` | `src/lib/components/ui/ResultArea.svelte` | Collapsible before/after comparison view |
+| `Popover` | `src/lib/components/ui/Popover.svelte` | Fixed-position hover preview (escapes overflow contexts) |
+| `TransformationBuilder` | `src/lib/components/templates/TransformationBuilder.svelte` | UI for building template transformation chains |
+
+### Stores (`src/lib/stores/`)
+- `templateStore` - Template CRUD, starring, usage tracking
+- `starredTemplates` - Derived store of starred templates sorted by usage
+- `recentTemplates` - Last 10 used templates
+- `clipboardStore` - Clipboard capabilities and permissions
+- `uiStore` - Toasts, modals, loading states
+
+### Services (`src/lib/services/`)
+- `transformEngine.ts` - 14 transformation types (wrap_code_block, add_prefix, regex_replace, etc.)
+- `clipboardService.ts` - Read/write clipboard with fallbacks
+- `localStorage.ts` - Template persistence
+- `diffGenerator.ts` - Before/after diff visualization
+
+### Data Flow
+1. User clicks template card → `TemplateCard.handleClick()`
+2. Reads clipboard via `readClipboard()`
+3. Applies transformations via `applyTransformations()`
+4. Copies result via `copyWithFallback()`
+5. Updates usage stats, shows result area
+
+## Development
 
 Default to using Bun instead of Node.js.
 

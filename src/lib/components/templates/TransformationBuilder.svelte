@@ -10,32 +10,60 @@
 
 	let { transformations = $bindable(), ontransformationschange }: Props = $props();
 
-	const transformationTypes: { value: TransformationType; label: string; needsValue: boolean }[] = [
-		{ value: 'remove_blank_lines', label: 'Remove Blank Lines', needsValue: false },
-		{ value: 'trim_lines', label: 'Trim Lines', needsValue: false },
-		{ value: 'wrap_code_block', label: 'Wrap in Code Block', needsValue: true },
-		{ value: 'add_prefix', label: 'Add Prefix', needsValue: true },
-		{ value: 'add_suffix', label: 'Add Suffix', needsValue: true },
-		{ value: 'regex_replace', label: 'Regex Replace', needsValue: true },
-		{ value: 'to_uppercase', label: 'To Uppercase', needsValue: false },
-		{ value: 'to_lowercase', label: 'To Lowercase', needsValue: false },
-		{ value: 'remove_duplicates', label: 'Remove Duplicates', needsValue: false },
-		{ value: 'sort_lines', label: 'Sort Lines', needsValue: false },
-		{ value: 'reverse_lines', label: 'Reverse Lines', needsValue: false },
-		{ value: 'number_lines', label: 'Number Lines', needsValue: true },
-		{ value: 'indent', label: 'Indent', needsValue: true },
-		{ value: 'dedent', label: 'Dedent', needsValue: true }
-	];
+	// Categorized transformation types
+	const transformationCategories: Record<
+		string,
+		{ value: TransformationType; label: string }[]
+	> = {
+		Add: [
+			{ value: 'add_prefix', label: 'Add Prefix' },
+			{ value: 'add_suffix', label: 'Add Suffix' },
+			{ value: 'wrap_code_block', label: 'Wrap in Code Block' },
+			{ value: 'number_lines', label: 'Number Lines' },
+			{ value: 'indent', label: 'Indent' }
+		],
+		Remove: [
+			{ value: 'remove_blank_lines', label: 'Remove Blank Lines' },
+			{ value: 'trim_lines', label: 'Trim Lines' },
+			{ value: 'dedent', label: 'Dedent' },
+			{ value: 'remove_duplicates', label: 'Remove Duplicates' }
+		],
+		Replace: [{ value: 'regex_replace', label: 'Regex Replace' }],
+		Transform: [
+			{ value: 'to_uppercase', label: 'To Uppercase' },
+			{ value: 'to_lowercase', label: 'To Lowercase' }
+		],
+		Reorder: [
+			{ value: 'sort_lines', label: 'Sort Lines' },
+			{ value: 'reverse_lines', label: 'Reverse Lines' }
+		]
+	};
 
-	function addTransformation() {
+	// Flatten for easy lookup
+	const allTransformationTypes = Object.values(transformationCategories).flat();
+
+	let selectedTypeToAdd = $state('');
+
+	function addTransformation(type: TransformationType) {
 		const newTransformation: Transformation = {
 			id: `trans-${Date.now()}`,
-			type: 'remove_blank_lines',
+			type: type,
 			enabled: true,
 			order: transformations.length + 1
 		};
 		transformations = [...transformations, newTransformation];
 		ontransformationschange(transformations);
+
+		// Reset dropdown
+		selectedTypeToAdd = '';
+	}
+
+	function handleAddTransformationChange(e: Event) {
+		const select = e.target as HTMLSelectElement;
+		const type = select.value as TransformationType;
+		if (type) {
+			addTransformation(type);
+		}
 	}
 
 	function removeTransformation(id: string) {
@@ -72,55 +100,77 @@
 		ontransformationschange(transformations);
 	}
 
-	function getTransformationTypeInfo(type: TransformationType) {
-		return transformationTypes.find((t) => t.value === type);
-	}
-
 </script>
 
 <div class="space-y-4">
-	<!-- Add Transformation Button -->
-	<button
-		onclick={addTransformation}
-		class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100"
-	>
-		<Plus size={16} />
-		Add Transformation
-	</button>
+	<!-- Add Transformation Dropdown -->
+	<div>
+		<label for="add-transformation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+			Add Transformation
+		</label>
+		<select
+			id="add-transformation"
+			bind:value={selectedTypeToAdd}
+			onchange={handleAddTransformationChange}
+			class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+		>
+			<option value="">Select transformation type...</option>
+			{#each Object.entries(transformationCategories) as [category, types]}
+				<optgroup label={category}>
+					{#each types as type}
+						<option value={type.value}>{type.label}</option>
+					{/each}
+				</optgroup>
+			{/each}
+		</select>
+	</div>
 
 	<!-- Transformations List -->
 	{#if transformations.length === 0}
-		<div class="text-center py-8 text-gray-500">
+		<div class="text-center py-8 text-gray-500 dark:text-gray-400">
 			No transformations yet. Click "Add Transformation" to get started.
 		</div>
 	{:else}
 		<div class="space-y-3">
 			{#each transformations as transformation, index (transformation.id)}
-				<div class="bg-white border border-gray-200 rounded-lg p-4">
-					<!-- Header -->
-					<div class="flex items-center justify-between mb-3">
-						<div class="flex items-center gap-2">
-							<span class="text-sm font-medium text-gray-500">#{index + 1}</span>
-							<input
-								type="checkbox"
-								checked={transformation.enabled}
-								onchange={(e) =>
-									updateTransformation(transformation.id, {
-										enabled: (e.target as HTMLInputElement).checked
-									})}
-								class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-							/>
-							<span class="text-sm font-medium">
-								{getTransformationName(transformation.type)}
-							</span>
-						</div>
+				<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+					<!-- Header with Type Selector -->
+					<div class="flex items-center gap-2 mb-3">
+						<span class="text-sm font-medium text-gray-500 dark:text-gray-400 shrink-0">#{index + 1}</span>
+						<input
+							type="checkbox"
+							checked={transformation.enabled}
+							onchange={(e) =>
+								updateTransformation(transformation.id, {
+									enabled: (e.target as HTMLInputElement).checked
+								})}
+							class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 shrink-0"
+						/>
 
-						<div class="flex items-center gap-1">
+						<!-- Type Selector Dropdown -->
+						<select
+							value={transformation.type}
+							onchange={(e) =>
+								updateTransformation(transformation.id, {
+									type: (e.target as HTMLSelectElement).value as TransformationType
+								})}
+							class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+						>
+							{#each Object.entries(transformationCategories) as [category, types]}
+								<optgroup label={category}>
+									{#each types as type}
+										<option value={type.value}>{type.label}</option>
+									{/each}
+								</optgroup>
+							{/each}
+						</select>
+
+						<div class="flex items-center gap-1 shrink-0">
 							<!-- Move Up -->
 							<button
 								onclick={() => moveUp(index)}
 								disabled={index === 0}
-								class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+								class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
 								title="Move up"
 							>
 								<ChevronUp size={18} />
@@ -130,7 +180,7 @@
 							<button
 								onclick={() => moveDown(index)}
 								disabled={index === transformations.length - 1}
-								class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+								class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
 								title="Move down"
 							>
 								<ChevronDown size={18} />
@@ -139,7 +189,7 @@
 							<!-- Delete -->
 							<button
 								onclick={() => removeTransformation(transformation.id)}
-								class="p-1 text-red-400 hover:text-red-600"
+								class="p-1 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
 								title="Delete"
 							>
 								<Trash2 size={18} />
@@ -147,27 +197,10 @@
 						</div>
 					</div>
 
-					<!-- Type Selector -->
-					<div class="mb-3">
-						<label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-						<select
-							value={transformation.type}
-							onchange={(e) =>
-								updateTransformation(transformation.id, {
-									type: (e.target as HTMLSelectElement).value as TransformationType
-								})}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-						>
-							{#each transformationTypes as type}
-								<option value={type.value}>{type.label}</option>
-							{/each}
-						</select>
-					</div>
-
 					<!-- Configuration based on type -->
 					{#if transformation.type === 'wrap_code_block' || transformation.type === 'add_prefix' || transformation.type === 'add_suffix'}
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">
+							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 								{transformation.type === 'wrap_code_block'
 									? 'Language (optional)'
 									: transformation.type === 'add_prefix'
@@ -182,13 +215,13 @@
 										value: (e.target as HTMLInputElement).value
 									})}
 								placeholder={transformation.type === 'wrap_code_block' ? 'e.g., javascript' : ''}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+								class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 							/>
 						</div>
 					{:else if transformation.type === 'regex_replace'}
 						<div class="space-y-2">
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">Pattern</label>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pattern</label>
 								<input
 									type="text"
 									value={('pattern' in transformation && transformation.pattern) || ''}
@@ -199,11 +232,11 @@
 										updateTransformation(transformation.id, { pattern });
 									}}
 									placeholder="e.g., \n\n+"
-									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">Replacement</label>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Replacement</label>
 								<input
 									type="text"
 									value={('replacement' in transformation && transformation.replacement) || ''}
@@ -212,11 +245,11 @@
 											replacement: (e.target as HTMLInputElement).value
 										})}
 									placeholder="e.g., \n"
-									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 								/>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">Flags</label>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Flags</label>
 								<input
 									type="text"
 									value={('flags' in transformation && transformation.flags) || 'g'}
@@ -225,13 +258,13 @@
 											flags: (e.target as HTMLInputElement).value
 										})}
 									placeholder="g, gi, gm, etc."
-									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 								/>
 							</div>
 						</div>
 					{:else if transformation.type === 'number_lines' || transformation.type === 'indent' || transformation.type === 'dedent'}
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">
+							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 								{transformation.type === 'number_lines'
 									? 'Start From'
 									: transformation.type === 'indent'
@@ -246,7 +279,7 @@
 										value: parseInt((e.target as HTMLInputElement).value) || 1
 									})}
 								min="1"
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+								class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 							/>
 						</div>
 					{/if}
