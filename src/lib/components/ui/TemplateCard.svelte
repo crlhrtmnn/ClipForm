@@ -110,7 +110,7 @@
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 	disabled={isProcessing}
-	class="group relative flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-wait min-w-[120px] min-h-[100px]"
+	class="group relative flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-wait min-w-30 min-h-25"
 >
 	<!-- Icon -->
 	<div class="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">

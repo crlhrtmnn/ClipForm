@@ -86,7 +86,7 @@
 			<div class="flex items-center gap-2">
 				<Check size={18} class="text-green-600 dark:text-green-500" />
 				<span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-					Transformed with <span class="text-blue-600 dark:text-blue-400">{templateName}</span>
+					Transformed with <span class="font-extrabold">{templateName}</span>
 				</span>
 			</div>
 
