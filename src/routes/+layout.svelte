@@ -4,13 +4,35 @@
 	import { page } from '$app/stores';
 	import { clipboardStore } from '$lib/stores/clipboardStore';
 	import { uiStore } from '$lib/stores/uiStore';
-	import { themeStore } from '$lib/stores/themeStore';
+	import { themeStore, type ThemeMode } from '$lib/stores/themeStore';
 	import { detectClipboardCapabilities } from '$lib/services/clipboardService';
-	import { ClipboardList, Home, Settings, Sparkle, Sparkles, Github, Linkedin } from 'lucide-svelte';
+	import { ClipboardList, Home, Settings, Sparkle, Sparkles, Github, Linkedin, Menu, X, Sun, Moon, Monitor, Check } from 'lucide-svelte';
 	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
 
 	let { children } = $props();
+
+	// Mobile menu state
+	let mobileMenuOpen = $state(false);
+
+	// Theme modes for mobile menu
+	const themeModes: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+		{ value: 'light', label: 'Light', icon: Sun },
+		{ value: 'dark', label: 'Dark', icon: Moon },
+		{ value: 'system', label: 'System', icon: Monitor }
+	];
+
+	function toggleMobileMenu() {
+		mobileMenuOpen = !mobileMenuOpen;
+	}
+
+	function closeMobileMenu() {
+		mobileMenuOpen = false;
+	}
+
+	function handleThemeSelect(mode: ThemeMode) {
+		themeStore.setTheme(mode);
+	}
 
 	// Get the current theme reactively
 	let currentTheme = $derived($themeStore.resolvedTheme);
@@ -47,17 +69,18 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 bg-ambient bg-grain flex flex-col overflow-x-hidden">
 	<!-- Header -->
 	<header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
 			<div class="flex justify-between items-center">
 				<div class="flex items-center">
-					<a href="/" class="flex items-center hover:scale-[1.02] transition-transform">
+					<a href="/" class="flex items-center hover:scale-[1.02] transition-transform" onclick={closeMobileMenu}>
 						<span class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
 							Clip<span class="text-blue-600 dark:text-blue-400">Form</span>
 						</span>
 					</a>
 				</div>
 
-				<nav class="flex items-center gap-1">
+				<!-- Desktop Navigation -->
+				<nav class="hidden sm:flex items-center gap-1">
 					<a
 						href="/"
 						class="nav-tab {$page.url.pathname === '/' ? 'nav-tab-active' : ''}"
@@ -76,7 +99,69 @@
 						<ThemeToggle />
 					</div>
 				</nav>
+
+				<!-- Mobile Menu Button -->
+				<button
+					onclick={toggleMobileMenu}
+					class="hidden-on-desktop p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-black/5 dark:text-gray-500 dark:hover:text-gray-200 dark:hover:bg-white/5 transition-all"
+					aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+					aria-expanded={mobileMenuOpen}
+				>
+					{#if mobileMenuOpen}
+						<X size={24} />
+					{:else}
+						<Menu size={24} />
+					{/if}
+				</button>
 			</div>
+
+			<!-- Mobile Navigation Menu -->
+			{#if mobileMenuOpen}
+				<nav class="sm:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+					<div class="flex flex-col gap-2">
+						<a
+							href="/"
+							onclick={closeMobileMenu}
+							class="mobile-nav-item {$page.url.pathname === '/' ? 'mobile-nav-item-active' : ''}"
+						>
+							<ClipboardList size={20} />
+							Converter
+						</a>
+						<a
+							href="/templates"
+							onclick={closeMobileMenu}
+							class="mobile-nav-item {$page.url.pathname.startsWith('/templates') ? 'mobile-nav-item-active' : ''}"
+						>
+							<Sparkles size={20} />
+							Templates
+						</a>
+						
+						<!-- Theme Selection -->
+						<div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+							<span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2 block">
+								Theme
+							</span>
+							<div class="flex flex-col gap-1">
+								{#each themeModes as mode}
+									{@const IconComponent = mode.icon}
+									<button
+										onclick={() => handleThemeSelect(mode.value)}
+										class="mobile-nav-item justify-between {$themeStore.mode === mode.value ? 'mobile-nav-item-active' : ''}"
+									>
+										<div class="flex items-center gap-3">
+											<IconComponent size={20} />
+											<span>{mode.label}</span>
+										</div>
+										{#if $themeStore.mode === mode.value}
+											<Check size={18} class="text-blue-600 dark:text-blue-400" />
+										{/if}
+									</button>
+								{/each}
+							</div>
+						</div>
+					</div>
+				</nav>
+			{/if}
 		</div>
 	</header>
 
