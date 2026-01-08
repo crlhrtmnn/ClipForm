@@ -2,13 +2,13 @@
 
 A fast, one-click text transformation tool. Transform your clipboard content instantly without copy-pasting into chatty.
 
-**[Try it live →](https://converter.com)**
+**[Try it live](https://clipform.c15n.dev/)**
 
 ## How It Works
 
 1. Copy text to your clipboard
 2. Click a template
-3. Done — transformed text is back in your clipboard
+3. Done [^1] — transformed text is back in your clipboard
 
 No forms, no deleting, no 'Certainly!'. Just one click.
 
@@ -26,7 +26,7 @@ No forms, no deleting, no 'Certainly!'. Just one click.
 
 Because pasting into random text tools just to trim some whitespace is lame.
 
-## Available Transformations
+## Available Transformations to build Templates with
 
 | Transform | Description |
 |-----------|-------------|
@@ -41,7 +41,8 @@ Because pasting into random text tools just to trim some whitespace is lame.
 | Indent / Dedent | Add or remove indentation |
 | Wrap Code Block | Wrap in markdown code fences |
 | Regex Replace | Find and replace with regular expressions |
-If you need more just tell me and I will tell Claude.
+
+If you need more just tell me so I can tell Claude.
 
 ## Self-Hosting
 
@@ -74,6 +75,10 @@ bun run build
 ## License
 
 MIT
+
+## Confessions
+
+[^1]: In Firefox there is one more step because of security stuff: `ctrl + v`. But it looks nice, i swear!
 
 ---
 
