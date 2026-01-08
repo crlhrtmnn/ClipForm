@@ -195,14 +195,14 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_interactive_supports_focus -->
 	<!-- svelte-ignore a11y_interactive_supports_focus -->
 	<div
-		class="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[15vh]"
+		class="palette-backdrop fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
 		onclick={handleBackdropClick}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Command palette"
 	>
 		<!-- Palette -->
-		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+		<div class="palette-container bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
 			<!-- Search input -->
 			<div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
 				<Search size={20} class="text-gray-400 dark:text-gray-500 shrink-0" />
@@ -271,3 +271,47 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	/* Backdrop fade in */
+	.palette-backdrop {
+		background-color: rgba(0, 0, 0, 0.5);
+		animation: backdrop-fade-in 0.2s ease-out;
+	}
+
+	@keyframes backdrop-fade-in {
+		from {
+			background-color: rgba(0, 0, 0, 0);
+		}
+		to {
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+	}
+
+	/* Palette container slides down with gentle spring */
+	.palette-container {
+		animation: palette-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+		transform-origin: top center;
+	}
+
+	@keyframes palette-enter {
+		from {
+			opacity: 0;
+			transform: scale(0.96) translateY(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+	}
+
+	/* Accessibility: respect reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.palette-backdrop {
+			animation: none;
+		}
+		.palette-container {
+			animation: none;
+		}
+	}
+</style>

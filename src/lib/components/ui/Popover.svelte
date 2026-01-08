@@ -126,9 +126,35 @@
 	<div
 		bind:offsetWidth={popoverWidth}
 		bind:offsetHeight={popoverHeight}
-		class="fixed z-999 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl pointer-events-none {position.placement === 'above-center' || position.placement === 'below' ? 'p-3 w-80' : position.placement === 'inside' ? 'p-2 w-auto' : 'p-3 w-80'}"
+		class="popover-container fixed z-999 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl pointer-events-none {position.placement === 'above-center' || position.placement === 'below' ? 'p-3 w-80' : position.placement === 'inside' ? 'p-2 w-auto' : 'p-3 w-80'}"
 		style="left: {position.x}px; top: {position.y}px;"
 	>
 		{@render children()}
 	</div>
 {/if}
+
+<style>
+	/* Popover fades in with subtle scale - fast and unobtrusive */
+	.popover-container {
+		animation: popover-enter 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+		transform-origin: top center;
+	}
+
+	@keyframes popover-enter {
+		from {
+			opacity: 0;
+			transform: scale(0.97);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	/* Accessibility: respect reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.popover-container {
+			animation: none;
+		}
+	}
+</style>
