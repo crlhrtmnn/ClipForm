@@ -1,11 +1,11 @@
-<img width="906" height="478" alt="image" src="https://github.com/user-attachments/assets/aaff3890-865b-449a-aed7-525f8fbbfa9a" />
+
+<img width="1359" height="822" alt="image" src="https://github.com/user-attachments/assets/ce18d4f7-65d7-4fe9-825f-2cd470064ae5" />
 
 <p align="center">
   A fast, one-click text transformation tool. <br> Transform your clipboard content instantly without copy-pasting into chatty. 
   <br>
   <a href="https://clipform.c15n.dev/">Try it live</a>
 </p>
-
 
 
 ---
