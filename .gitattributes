@@ -1,0 +1,6 @@
+# Mark lock files as generated so GitHub excludes them from language statistics
+bun.lock linguist-generated=true
+bun.lockb linguist-generated=true
+
+# Ensure proper syntax highlighting
+*.svelte linguist-language=Svelte
