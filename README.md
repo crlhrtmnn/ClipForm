@@ -1,8 +1,14 @@
-# 📋✨ ClipForm
 
-A fast, one-click text transformation tool. Transform your clipboard content instantly without copy-pasting into chatty.
+<img width="1359" height="822" alt="image" src="https://github.com/user-attachments/assets/ce18d4f7-65d7-4fe9-825f-2cd470064ae5" />
 
-**[Try it live](https://clipform.c15n.dev/)**
+<p align="center">
+  A fast, one-click text transformation tool. <br> Transform your clipboard content instantly without copy-pasting into chatty. 
+  <br>
+  <a href="https://clipform.c15n.dev/">Try it live</a>
+</p>
+
+
+---
 
 ## How It Works
 
