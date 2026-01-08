@@ -131,33 +131,6 @@
 				Click a template to transform clipboard text instantly
 			</p>
 		</div>
-
-		<div class="flex items-center gap-2">
-			<button
-				onclick={() => isPaletteOpen = true}
-				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-				title="Search all templates ({modKey}+K)"
-			>
-				<Command size={16} />
-				<span class="hidden sm:inline">{modKey}+K</span>
-			</button>
-
-			<a
-				href="/templates/new"
-				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-			>
-				<Plus size={16} />
-				<span class="hidden sm:inline">New</span>
-			</a>
-
-			<a
-				href="/templates"
-				class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-			>
-				<Settings size={16} />
-				<span class="hidden sm:inline">Manage</span>
-			</a>
-		</div>
 	</div>
 
 	<!-- Repeat Last Bar -->

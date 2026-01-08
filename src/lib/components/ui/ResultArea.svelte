@@ -3,6 +3,7 @@
 	import { toast } from '$lib/stores/uiStore';
 	import { Check, Copy, X, ChevronDown, ChevronUp } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
+	import Popover from './Popover.svelte';
 
 	interface Props {
 		visible: boolean;
@@ -16,6 +17,10 @@
 
 	let copied = $state(false);
 	let isCollapsed = $state(false);
+	let inputHovered = $state(false);
+	let outputHovered = $state(false);
+	let inputElement: HTMLDivElement | null = $state(null);
+	let outputElement: HTMLDivElement | null = $state(null);
 
 	// Count lines
 	const inputLineCount = $derived(input.split('\n').length);
@@ -34,8 +39,40 @@
 		}
 	}
 
+	async function copyInput() {
+		const success = await copyWithFallback(input);
+		if (success) {
+			toast.success('Input copied to clipboard!');
+		} else {
+			toast.error('Failed to copy');
+		}
+	}
+
+	async function copyOutput() {
+		const success = await copyWithFallback(output);
+		if (success) {
+			toast.success('Output copied to clipboard!');
+		} else {
+			toast.error('Failed to copy');
+		}
+	}
+
 	function toggleCollapse() {
 		isCollapsed = !isCollapsed;
+	}
+
+	function handleInputKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			copyInput();
+		}
+	}
+
+	function handleOutputKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			copyOutput();
+		}
 	}
 </script>
 
@@ -102,7 +139,16 @@
 							<span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Input</span>
 							<span class="text-xs text-gray-400 dark:text-gray-500">{inputLineCount} lines</span>
 						</div>
-						<div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-auto text-gray-700 dark:text-gray-300">
+						<div
+							bind:this={inputElement}
+							onclick={copyInput}
+							onkeydown={handleInputKeydown}
+							onmouseenter={() => inputHovered = true}
+							onmouseleave={() => inputHovered = false}
+							class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-auto text-gray-700 dark:text-gray-300 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+							role="button"
+							tabindex="0"
+						>
 							{input}
 						</div>
 					</div>
@@ -113,11 +159,35 @@
 							<span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Output</span>
 							<span class="text-xs text-gray-400 dark:text-gray-500">{outputLineCount} lines</span>
 						</div>
-						<div class="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 p-3 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-auto text-gray-700 dark:text-gray-300">
+						<div
+							bind:this={outputElement}
+							onclick={copyOutput}
+							onkeydown={handleOutputKeydown}
+							onmouseenter={() => outputHovered = true}
+							onmouseleave={() => outputHovered = false}
+							class="bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 p-3 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-auto text-gray-700 dark:text-gray-300 cursor-pointer hover:border-green-400 dark:hover:border-green-500 transition-colors"
+							role="button"
+							tabindex="0"
+						>
 							{output}
 						</div>
 					</div>
 				</div>
+
+				<!-- Popovers -->
+				<Popover trigger={inputElement} show={inputHovered} inside={true}>
+					<div class="flex items-center text-xs text-gray-700 dark:text-gray-200">
+						<Copy size={14} class="text-blue-500" />
+						<span class="font-medium">Copy</span>
+					</div>
+				</Popover>
+
+				<Popover trigger={outputElement} show={outputHovered} inside={true}>
+					<div class="flex items-center text-xs text-gray-700 dark:text-gray-200">
+						<Copy size={14} class="text-green-500" />
+						<span class="font-medium">Copy</span>
+					</div>
+				</Popover>
 			</div>
 		{/if}
 	</div>

@@ -6,7 +6,7 @@
 	import { uiStore } from '$lib/stores/uiStore';
 	import { themeStore } from '$lib/stores/themeStore';
 	import { detectClipboardCapabilities } from '$lib/services/clipboardService';
-	import { Home, Settings } from 'lucide-svelte';
+	import { ClipboardList, Home, Settings, Sparkle, Sparkles } from 'lucide-svelte';
 	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
 
 	let { children } = $props();
@@ -60,7 +60,7 @@
 							? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
 							: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
 					>
-						<Home size={18} />
+						<ClipboardList size={18} />
 						Converter
 					</a>
 					<a
@@ -70,7 +70,7 @@
 							? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
 							: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
 					>
-						<Settings size={18} />
+						<Sparkles size={18} />
 						Templates
 					</a>
 					<ThemeToggle />

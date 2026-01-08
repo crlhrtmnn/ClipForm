@@ -5,15 +5,18 @@
 		trigger: HTMLElement | null;
 		show: boolean;
 		children?: Snippet;
+		inside?: boolean; // Position inside the trigger element
 	}
 
-	let { trigger, show, children }: Props = $props();
+	let { trigger, show, children, inside = false }: Props = $props();
 
-	let position = $state({ x: 0, y: 0, placement: 'right' as 'right' | 'left' | 'below' });
+	let position = $state({ x: 0, y: 0, placement: 'right' as 'right' | 'left' | 'below' | 'inside' | 'above-center' });
 	let isVisible = $state(false);
+	let popoverWidth = $state(0);
+	let popoverHeight = $state(0);
 
 	const POPOVER_WIDTH = 320; // w-80 = 20rem = 320px
-	const GAP = 14; // ml-2 = 0.5rem = 8px
+	const GAP = 8; // gap between trigger and popover
 
 	function calculatePosition() {
 		if (!trigger) {
@@ -27,28 +30,52 @@
 
 		let x = 0;
 		let y = rect.top;
-		let placement: 'right' | 'left' | 'below' = 'right';
+		let placement: 'right' | 'left' | 'below' | 'inside' | 'above-center' = 'right';
 
-		// Try positioning to the right first
-		if (rect.right + GAP + POPOVER_WIDTH <= viewportWidth) {
-			x = rect.right + GAP;
-			placement = 'right';
-		}
-		// Try positioning to the left
-		else if (rect.left - GAP - POPOVER_WIDTH >= 0) {
-			x = rect.left - GAP - POPOVER_WIDTH;
-			placement = 'left';
-		}
-		// Fallback: center below the element
-		else {
-			x = Math.max(GAP, Math.min(viewportWidth - POPOVER_WIDTH - GAP, rect.left));
-			y = rect.bottom + GAP;
-			placement = 'below';
+		// If inside mode, center inside the trigger (always)
+		if (inside) {
+			const estimatedWidth = popoverWidth || 100;
+			const estimatedHeight = popoverHeight || 24;
+
+			x = rect.left + (rect.width - estimatedWidth) / 2;
+			// y = rect.top + (rect.height - estimatedHeight) / 2;
+
+			placement = 'inside';
+			position = { x, y, placement };
+			isVisible = true;
+			return;
 		}
 
-		// Ensure popover doesn't go off bottom of screen
-		if (y + 200 > viewportHeight && placement !== 'below') {
-			y = Math.max(GAP, viewportHeight - 200 - GAP);
+		// Default: position centered below the trigger with a gap
+		const estimatedWidth = popoverWidth || POPOVER_WIDTH;
+		const estimatedHeight = popoverHeight || 200;
+
+		// Center horizontally over the trigger
+		x = rect.left + (rect.width / 2) - (estimatedWidth / 2);
+
+		// Position below with gap
+		y = rect.bottom + GAP;
+		placement = 'below';
+
+		// Ensure popover doesn't go off left edge
+		if (x < GAP) {
+			x = GAP;
+		}
+
+		// Ensure popover doesn't go off right edge
+		if (x + estimatedWidth > viewportWidth - GAP) {
+			x = viewportWidth - estimatedWidth - GAP;
+		}
+
+		// If there's not enough space below, position above instead
+		if (y + estimatedHeight > viewportHeight - GAP) {
+			y = rect.top - estimatedHeight - GAP;
+			placement = 'above-center';
+		}
+
+		// Ensure popover doesn't go off top of screen
+		if (y < GAP && placement === 'above-center') {
+			y = GAP;
 		}
 
 		position = { x, y, placement };
@@ -61,6 +88,13 @@
 			calculatePosition();
 		} else {
 			isVisible = false;
+		}
+	});
+
+	// Recalculate when popover dimensions are known (for better centering)
+	$effect(() => {
+		if (show && trigger && (popoverWidth > 0 || popoverHeight > 0)) {
+			calculatePosition();
 		}
 	});
 
@@ -90,7 +124,9 @@
 
 {#if isVisible && children}
 	<div
-		class="fixed z-999 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl p-3 w-80 pointer-events-none"
+		bind:offsetWidth={popoverWidth}
+		bind:offsetHeight={popoverHeight}
+		class="fixed z-999 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl pointer-events-none {position.placement === 'above-center' || position.placement === 'below' ? 'p-3 w-80' : position.placement === 'inside' ? 'p-2 w-auto' : 'p-3 w-80'}"
 		style="left: {position.x}px; top: {position.y}px;"
 	>
 		{@render children()}
