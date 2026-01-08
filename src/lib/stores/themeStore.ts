@@ -39,7 +39,9 @@ function createThemeStore() {
     mode: savedMode,
     systemPreference,
     resolvedTheme:
-      savedMode === "system" ? systemPreference : (savedMode as "light" | "dark"),
+      savedMode === "system"
+        ? systemPreference
+        : (savedMode as "light" | "dark"),
   });
 
   let mediaQuery: MediaQueryList | null = null;
