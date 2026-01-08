@@ -192,7 +192,7 @@
 	<!-- Hero Header -->
 	<div class="relative mb-16 text-center">
 		<!-- Refined blue backdrop glow -->
-		<div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[1700px] h-[1200px] pointer-events-none">
+		<div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[200vw] max-h-[80vh] h-[600px] pointer-events-none">
 			<div class="absolute inset-0 bg-linear-to-b from-blue-400/15 to-transparent rounded-[100%] blur-[80px]"></div>
 		</div>
 		

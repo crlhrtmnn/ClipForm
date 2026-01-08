@@ -44,7 +44,7 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 bg-ambient bg-grain flex flex-col">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 bg-ambient bg-grain flex flex-col overflow-x-hidden">
 	<!-- Header -->
 	<header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
