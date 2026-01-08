@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { templateStore, starredTemplates, recentTemplates, recentTemplatesStore } from '$lib/stores/templateStore';
 	import { toast } from '$lib/stores/uiStore';
-	import { readClipboard, copyWithFallback } from '$lib/services/clipboardService';
+	import { readClipboard, copyWithFallback, needsPasteWorkaround } from '$lib/services/clipboardService';
 	import { applyTransformations } from '$lib/services/transformEngine';
 	import type { Template } from '$lib/types/template';
 	import { Plus, Settings, RotateCcw, Command } from 'lucide-svelte';
 	import TemplateCard from '$lib/components/ui/TemplateCard.svelte';
 	import CommandPalette from '$lib/components/ui/CommandPalette.svelte';
 	import ResultArea from '$lib/components/ui/ResultArea.svelte';
+	import FirefoxPasteModal from '$lib/components/ui/FirefoxPasteModal.svelte';
 
 	// State
 	let isPaletteOpen = $state(false);
@@ -17,6 +18,10 @@
 	let resultOutput = $state('');
 	let resultTemplateName = $state('');
 	let isRepeatProcessing = $state(false);
+
+	// Firefox paste modal state
+	let firefoxPasteModalOpen = $state(false);
+	let firefoxPasteTemplate = $state<Template | null>(null);
 
 	// Get all templates
 	const allTemplates = $derived($templateStore);
@@ -30,9 +35,72 @@
 		resultVisible = true;
 	}
 
+	// Handle Firefox paste modal open request
+	function handleFirefoxPaste(template: Template) {
+		firefoxPasteTemplate = template;
+		firefoxPasteModalOpen = true;
+	}
+
+	// Handle paste from Firefox modal
+	async function handleFirefoxPasteSubmit(input: string) {
+		if (!firefoxPasteTemplate) return;
+
+		const template = firefoxPasteTemplate;
+
+		// Close modal immediately for better UX
+		firefoxPasteModalOpen = false;
+
+		try {
+			// Apply transformation
+			const output = applyTransformations(input, template.transformations);
+
+			// Copy result to clipboard
+			const copied = await copyWithFallback(output);
+
+			// Update usage stats
+			templateStore.incrementUsageCount(template.id);
+			recentTemplatesStore.add(template.id);
+
+			// Update result area
+			lastUsedTemplate = template;
+			resultInput = input;
+			resultOutput = output;
+			resultTemplateName = template.name;
+			resultVisible = true;
+
+			// Show success toast
+			if (copied) {
+				toast.success(`Transformed and copied!`);
+			} else {
+				toast.info('Transformed! Click Copy to copy result.');
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error('Failed to transform');
+			}
+		}
+
+		firefoxPasteTemplate = null;
+	}
+
+	// Close Firefox paste modal
+	function closeFirefoxPasteModal() {
+		firefoxPasteModalOpen = false;
+		firefoxPasteTemplate = null;
+	}
+
 	// Repeat last transformation
 	async function repeatLastTransformation() {
 		if (!lastUsedTemplate || isRepeatProcessing) return;
+
+		// For Firefox, show the paste modal
+		if (needsPasteWorkaround()) {
+			firefoxPasteTemplate = lastUsedTemplate;
+			firefoxPasteModalOpen = true;
+			return;
+		}
 
 		isRepeatProcessing = true;
 
@@ -171,7 +239,7 @@
 
 			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 				{#each $starredTemplates as template (template.id)}
-					<TemplateCard {template} onTransform={handleTransformResult} />
+					<TemplateCard {template} onTransform={handleTransformResult} onFirefoxPaste={handleFirefoxPaste} />
 				{/each}
 			</div>
 		</div>
@@ -224,5 +292,14 @@
 		templates={allTemplates}
 		onClose={() => isPaletteOpen = false}
 		onTransform={handleTransformResult}
+		onFirefoxPaste={handleFirefoxPaste}
+	/>
+
+	<!-- Firefox Paste Modal -->
+	<FirefoxPasteModal
+		open={firefoxPasteModalOpen}
+		template={firefoxPasteTemplate}
+		onPaste={handleFirefoxPasteSubmit}
+		onClose={closeFirefoxPasteModal}
 	/>
 </div>

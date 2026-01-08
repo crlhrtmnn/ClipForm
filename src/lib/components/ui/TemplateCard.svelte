@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Template } from '$lib/types/template';
 	import { applyTransformations } from '$lib/services/transformEngine';
-	import { readClipboard, copyWithFallback } from '$lib/services/clipboardService';
+	import { readClipboard, copyWithFallback, needsPasteWorkaround } from '$lib/services/clipboardService';
 	import { templateStore, recentTemplatesStore } from '$lib/stores/templateStore';
 	import { toast } from '$lib/stores/uiStore';
 	import { Code, List, Scissors, Type, Hash, FileText } from 'lucide-svelte';
@@ -10,9 +10,10 @@
 	interface Props {
 		template: Template;
 		onTransform: (result: { input: string; output: string; template: Template }) => void;
+		onFirefoxPaste?: (template: Template) => void;
 	}
 
-	let { template, onTransform }: Props = $props();
+	let { template, onTransform, onFirefoxPaste }: Props = $props();
 
 	let isProcessing = $state(false);
 	let isHovered = $state(false);
@@ -56,6 +57,12 @@
 
 	async function handleClick() {
 		if (isProcessing) return;
+
+		// For Firefox, show the paste modal instead of trying to read clipboard
+		if (needsPasteWorkaround() && onFirefoxPaste) {
+			onFirefoxPaste(template);
+			return;
+		}
 
 		isProcessing = true;
 

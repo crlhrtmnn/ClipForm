@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Template } from '$lib/types/template';
 	import { applyTransformations } from '$lib/services/transformEngine';
-	import { readClipboard, copyWithFallback } from '$lib/services/clipboardService';
+	import { readClipboard, copyWithFallback, needsPasteWorkaround } from '$lib/services/clipboardService';
 	import { templateStore, recentTemplatesStore } from '$lib/stores/templateStore';
 	import { toast } from '$lib/stores/uiStore';
 	import { Search, Star, Folder, X } from 'lucide-svelte';
@@ -12,9 +12,10 @@
 		templates: Template[];
 		onClose: () => void;
 		onTransform: (result: { input: string; output: string; template: Template }) => void;
+		onFirefoxPaste?: (template: Template) => void;
 	}
 
-	let { open, templates, onClose, onTransform }: Props = $props();
+	let { open, templates, onClose, onTransform, onFirefoxPaste }: Props = $props();
 
 	let searchQuery = $state('');
 	let selectedIndex = $state(0);
@@ -118,6 +119,13 @@
 
 	async function selectTemplate(template: Template) {
 		if (isProcessing) return;
+
+		// For Firefox, delegate to parent and show paste modal
+		if (needsPasteWorkaround() && onFirefoxPaste) {
+			onClose();
+			onFirefoxPaste(template);
+			return;
+		}
 
 		isProcessing = true;
 
