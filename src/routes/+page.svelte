@@ -194,7 +194,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-8">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Clipboard Converter</h1>
+			<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">ClipForm</h1>
 			<p class="text-gray-500 dark:text-gray-400 text-sm">
 				Click a template to transform clipboard text instantly
 			</p>

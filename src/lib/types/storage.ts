@@ -4,10 +4,10 @@ import type { Template } from './template';
  * localStorage keys
  */
 export const STORAGE_KEYS = {
-	TEMPLATES: 'clipboard-converter:templates',
-	SETTINGS: 'clipboard-converter:settings',
-	RECENT_TEMPLATES: 'clipboard-converter:recent',
-	VERSION: 'clipboard-converter:version'
+	TEMPLATES: 'clipform:templates',
+	SETTINGS: 'clipform:settings',
+	RECENT_TEMPLATES: 'clipform:recent',
+	VERSION: 'clipform:version'
 } as const;
 
 /**

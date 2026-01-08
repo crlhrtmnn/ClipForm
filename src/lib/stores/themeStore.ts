@@ -8,7 +8,7 @@ interface ThemeState {
   resolvedTheme: "light" | "dark";
 }
 
-const STORAGE_KEY = "clipboard-converter-theme";
+const STORAGE_KEY = "clipform-theme";
 
 /**
  * Theme store for managing dark mode with system preference detection
