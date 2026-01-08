@@ -94,7 +94,7 @@
 				<button
 					type="button"
 					onclick={handleCopy}
-					class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+					class="btn btn-ghost btn-sm"
 				>
 					{#if copied}
 						<Check size={16} class="text-green-600 dark:text-green-500" />
@@ -108,7 +108,7 @@
 				<button
 					type="button"
 					onclick={toggleCollapse}
-					class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+					class="btn btn-ghost btn-icon btn-sm"
 					title={isCollapsed ? 'Expand' : 'Collapse'}
 				>
 					{#if isCollapsed}
@@ -121,7 +121,7 @@
 				<button
 					type="button"
 					onclick={onHide}
-					class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+					class="btn btn-ghost btn-icon btn-sm"
 					title="Hide result"
 				>
 					<X size={18} />

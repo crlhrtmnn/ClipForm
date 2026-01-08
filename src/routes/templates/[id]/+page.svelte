@@ -144,7 +144,7 @@
 		<div class="flex items-center gap-4">
 			<button
 				onclick={handleCancel}
-				class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+				class="btn btn-ghost btn-icon"
 				aria-label="Go back"
 			>
 				<ArrowLeft size={24} />
@@ -157,14 +157,14 @@
 		<div class="flex items-center gap-2">
 			<button
 				onclick={handleDelete}
-				class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium"
+				class="btn btn-danger btn-md"
 			>
 				<Trash2 size={18} />
 				Delete
 			</button>
 			<button
 				onclick={handleSave}
-				class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+				class="btn btn-primary btn-md"
 			>
 				<Save size={18} />
 				Save Changes
@@ -176,7 +176,7 @@
 		<!-- Left Column: Configuration -->
 		<div class="space-y-6">
 			<!-- Template Metadata -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+			<div class="page-card p-6">
 				<h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Template Information</h2>
 
 				<div class="space-y-4">
@@ -253,7 +253,7 @@
 			</div>
 
 			<!-- Transformations -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+			<div class="page-card p-6">
 				<h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Transformations</h2>
 				<TransformationBuilder
 					bind:transformations
@@ -264,7 +264,7 @@
 
 		<!-- Right Column: Live Preview -->
 		<div class="space-y-6">
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+			<div class="page-card p-6">
 				<h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Test with Sample Text</h2>
 				<textarea
 					bind:value={sampleInput}
@@ -275,7 +275,7 @@
 			</div>
 
 			{#if transformedOutput}
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+				<div class="page-card p-6">
 					<div class="flex items-center justify-between mb-4">
 						<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Preview Output</h2>
 						<label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">

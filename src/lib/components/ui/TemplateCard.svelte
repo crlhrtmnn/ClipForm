@@ -117,15 +117,15 @@
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 	disabled={isProcessing}
-	class="template-card group relative flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-wait min-w-30 min-h-25"
+	class="interactive-card group flex flex-col items-center justify-center gap-3 p-5 cursor-pointer disabled:opacity-50 disabled:cursor-wait min-w-30 min-h-28"
 >
 	<!-- Icon -->
-	<div class="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-		<IconComponent size={24} />
+	<div class="card-icon">
+		<IconComponent size={22} />
 	</div>
 
 	<!-- Name -->
-	<span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 text-center line-clamp-2">
+	<span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 text-center line-clamp-2 transition-colors duration-200">
 		{template.name}
 	</span>
 </button>
@@ -146,35 +146,15 @@
 </Popover>
 
 <style>
-	/* Smooth hover lift with shadow - uses spring-like curve for natural feel */
-	.template-card {
-		transition:
-			transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-			box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	.template-card:hover:not(:disabled) {
-		transform: translateY(-2px);
-		box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-	}
-
-	/* Quick press feedback - fast down, spring back up */
-	.template-card:active:not(:disabled) {
-		transform: scale(0.97) translateY(0);
-		transition-duration: 0.08s;
-		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-		box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-	}
-
 	/* Accessibility: respect reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.template-card {
-			transition: box-shadow 0.15s ease;
+		.interactive-card {
+			transition: box-shadow 0.15s ease, border-color 0.15s ease;
 		}
-		.template-card:hover:not(:disabled) {
+		.interactive-card:hover:not(:disabled) {
 			transform: none;
 		}
-		.template-card:active:not(:disabled) {
+		.interactive-card:active:not(:disabled) {
 			transform: none;
 		}
 	}

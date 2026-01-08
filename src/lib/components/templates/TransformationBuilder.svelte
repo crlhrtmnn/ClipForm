@@ -170,7 +170,7 @@
 							<button
 								onclick={() => moveUp(index)}
 								disabled={index === 0}
-								class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
+								class="btn btn-ghost btn-icon btn-sm"
 								title="Move up"
 							>
 								<ChevronUp size={18} />
@@ -180,7 +180,7 @@
 							<button
 								onclick={() => moveDown(index)}
 								disabled={index === transformations.length - 1}
-								class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-30"
+								class="btn btn-ghost btn-icon btn-sm"
 								title="Move down"
 							>
 								<ChevronDown size={18} />
@@ -189,7 +189,7 @@
 							<!-- Delete -->
 							<button
 								onclick={() => removeTransformation(transformation.id)}
-								class="p-1 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400"
+								class="btn btn-ghost btn-icon btn-sm text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
 								title="Delete"
 							>
 								<Trash2 size={18} />

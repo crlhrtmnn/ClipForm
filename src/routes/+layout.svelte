@@ -44,37 +44,37 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 bg-ambient bg-grain flex flex-col">
 	<!-- Header -->
-	<header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="flex justify-between items-center h-16">
+	<header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div class="flex justify-between items-center">
 				<div class="flex items-center">
-					<a href="/" class="text-xl font-bold text-gray-900 dark:text-gray-100">📋✨</a>
+					<a href="/" class="flex items-center hover:scale-[1.02] transition-transform">
+						<span class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+							Clip<span class="text-blue-600 dark:text-blue-400">Form</span>
+						</span>
+					</a>
 				</div>
 
-				<nav class="flex items-center gap-4">
+				<nav class="flex items-center gap-1">
 					<a
 						href="/"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium {$page.url
-							.pathname === '/'
-							? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-							: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						class="nav-tab {$page.url.pathname === '/' ? 'nav-tab-active' : ''}"
 					>
 						<ClipboardList size={18} />
 						Converter
 					</a>
 					<a
 						href="/templates"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium {$page.url
-							.pathname.startsWith('/templates')
-							? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-							: 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						class="nav-tab {$page.url.pathname.startsWith('/templates') ? 'nav-tab-active' : ''}"
 					>
 						<Sparkles size={18} />
 						Templates
 					</a>
-					<ThemeToggle />
+					<div class="ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+						<ThemeToggle />
+					</div>
 				</nav>
 			</div>
 		</div>
@@ -90,13 +90,13 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 			<div class="flex items-center justify-between">
 				<div class="w-20"></div>
-				<p class="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-1.5">
+				<p class="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1.5">
 					Built with
 					<a
 						href="https://code.claude.com/docs"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="hover:opacity-80 transition-opacity"
+						class="hover:opacity-80 transition-opacity hover:scale-110 inline-block"
 						aria-label="Claude Code"
 					>
 						<svg
@@ -110,24 +110,24 @@
 					</a>
 					in CGN
 				</p>
-				<div class="flex items-center gap-4 w-20 justify-end">
+				<div class="flex items-center gap-2 w-20 justify-end">
 					<a
 						href="https://github.com/crlhrtmnn/ClipForm"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+						class="icon-link"
 						aria-label="GitHub"
 					>
-						<Github size={20} />
+						<Github size={18} />
 					</a>
 					<a
 						href="https://www.linkedin.com/in/carl-hartmann-82b245277/"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+						class="icon-link"
 						aria-label="LinkedIn"
 					>
-						<Linkedin size={20} />
+						<Linkedin size={18} />
 					</a>
 				</div>
 			</div>
@@ -172,7 +172,7 @@
 								$uiStore.modal.onCancel?.();
 								uiStore.closeModal();
 							}}
-							class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+							class="btn btn-secondary btn-md"
 						>
 							Cancel
 						</button>
@@ -183,7 +183,7 @@
 								$uiStore.modal.onConfirm?.();
 								uiStore.closeModal();
 							}}
-							class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+							class="btn btn-primary btn-md"
 						>
 							Confirm
 						</button>

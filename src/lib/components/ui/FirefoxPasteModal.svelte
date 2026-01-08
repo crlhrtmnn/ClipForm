@@ -107,7 +107,7 @@
 				</div>
 				<button
 					onclick={handleClose}
-					class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+					class="btn btn-ghost btn-icon"
 				>
 					<X size={20} />
 				</button>
@@ -149,10 +149,10 @@
 				{#if wasTypedManually && textContent.trim()}
 					<button
 						onclick={handleManualSubmit}
-						class="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+						class="btn btn-primary btn-md w-full mt-3"
 					>
 						Transform
-						<kbd class="px-1.5 py-0.5 bg-blue-500 rounded text-xs">{modKey}+Enter</kbd>
+						<kbd>{modKey}+Enter</kbd>
 					</button>
 				{/if}
 			</div>
@@ -161,7 +161,7 @@
 			<div class="px-4 pb-4">
 				<button
 					onclick={handleClose}
-					class="w-full py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+					class="btn btn-ghost btn-md w-full text-gray-500 dark:text-gray-400"
 				>
 					Cancel
 				</button>
@@ -179,11 +179,33 @@
 	.backdrop-enter {
 		background-color: rgba(0, 0, 0, 0.5);
 		backdrop-filter: blur(4px);
+		animation: backdrop-fade-in 0.2s ease-out forwards;
+	}
+	
+	@keyframes backdrop-fade-in {
+		0% {
+			background-color: rgba(0, 0, 0, 0);
+			backdrop-filter: blur(0);
+		}
+		100% {
+			background-color: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(4px);
+		}
 	}
 	
 	.backdrop-exit {
-		background-color: rgba(0, 0, 0, 0);
-		backdrop-filter: blur(0);
+		animation: backdrop-fade-out 0.15s ease-out forwards;
+	}
+	
+	@keyframes backdrop-fade-out {
+		0% {
+			background-color: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(4px);
+		}
+		100% {
+			background-color: rgba(0, 0, 0, 0);
+			backdrop-filter: blur(0);
+		}
 	}
 	
 	/* Modal container entrance */

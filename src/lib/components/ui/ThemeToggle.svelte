@@ -43,7 +43,7 @@
 <div class="relative" bind:this={dropdownRef}>
 	<button
 		onclick={() => (isOpen = !isOpen)}
-		class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+		class="icon-link"
 		aria-label="Toggle theme"
 		aria-expanded={isOpen}
 	>
@@ -52,16 +52,16 @@
 
 	{#if isOpen}
 		<div
-			class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+			class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
 		>
 			<div class="py-1">
 				{#each modes as mode}
 					{@const IconComponent = mode.component}
 					<button
 						onclick={() => handleSelect(mode.value)}
-						class="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+						class="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors {$themeStore.mode === mode.value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : ''}"
 					>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2.5">
 							<IconComponent size={16} />
 							<span>{mode.label}</span>
 						</div>

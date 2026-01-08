@@ -21,6 +21,20 @@
 	let selectedIndex = $state(0);
 	let searchInputRef = $state<HTMLInputElement | null>(null);
 	let isProcessing = $state(false);
+	let isExiting = $state(false);
+
+	// Animate out then call the actual callback
+	function animateOut(callback: () => void) {
+		isExiting = true;
+		setTimeout(() => {
+			callback();
+			isExiting = false;
+		}, 150); // Match exit animation duration
+	}
+
+	function handleClose() {
+		animateOut(onClose);
+	}
 
 	// Group templates by category with starred first
 	function getGroupedTemplates(templates: Template[], query: string) {
@@ -89,11 +103,12 @@
 			});
 			searchQuery = '';
 			selectedIndex = 0;
+			isExiting = false;
 		}
 	});
 
 	function handleKeyDown(e: KeyboardEvent) {
-		if (!open) return;
+		if (!open || isExiting) return;
 
 		switch (e.key) {
 			case 'ArrowDown':
@@ -112,7 +127,7 @@
 				break;
 			case 'Escape':
 				e.preventDefault();
-				onClose();
+				handleClose();
 				break;
 		}
 	}
@@ -122,7 +137,7 @@
 
 		// For Firefox, delegate to parent and show paste modal
 		if (needsPasteWorkaround() && onFirefoxPaste) {
-			onClose();
+			handleClose();
 			onFirefoxPaste(template);
 			return;
 		}
@@ -150,7 +165,7 @@
 			recentTemplatesStore.add(template.id);
 
 			// Close palette
-			onClose();
+			handleClose();
 
 			// Notify parent
 			onTransform({ input, output, template });
@@ -174,7 +189,7 @@
 
 	function handleBackdropClick(e: MouseEvent) {
 		if (e.target === e.currentTarget) {
-			onClose();
+			handleClose();
 		}
 	}
 
@@ -196,13 +211,14 @@
 	<!-- svelte-ignore a11y_interactive_supports_focus -->
 	<div
 		class="palette-backdrop fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+		class:palette-backdrop-exit={isExiting}
 		onclick={handleBackdropClick}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Command palette"
 	>
 		<!-- Palette -->
-		<div class="palette-container bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+		<div class="palette-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-200/50 dark:border-gray-700/50" class:palette-container-exit={isExiting}>
 			<!-- Search input -->
 			<div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
 				<Search size={20} class="text-gray-400 dark:text-gray-500 shrink-0" />
@@ -215,8 +231,8 @@
 				/>
 				<button
 					type="button"
-					onclick={onClose}
-					class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+					onclick={handleClose}
+					class="btn btn-ghost btn-icon btn-sm"
 				>
 					<X size={18} />
 				</button>
@@ -246,9 +262,9 @@
 							<button
 								type="button"
 								onclick={() => selectTemplate(template)}
-								class="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors {absoluteIndex === selectedIndex ? 'bg-blue-50 dark:bg-blue-900/30' : ''}"
+								class="w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors {absoluteIndex === selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}"
 							>
-								<span class="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+								<span class="flex-1 text-sm font-medium {absoluteIndex === selectedIndex ? '' : 'text-gray-700 dark:text-gray-300'}">
 									{template.name}
 								</span>
 								{#if template.usageCount > 0}
@@ -263,10 +279,10 @@
 			</div>
 
 			<!-- Footer hint -->
-			<div class="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-4">
-				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">↑↓</kbd> navigate</span>
-				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Enter</kbd> apply</span>
-				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Esc</kbd> close</span>
+			<div class="px-4 py-2.5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-4">
+				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300 font-medium">↑↓</kbd> navigate</span>
+				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300 font-medium">Enter</kbd> apply</span>
+				<span><kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300 font-medium">Esc</kbd> close</span>
 			</div>
 		</div>
 	</div>
@@ -288,6 +304,20 @@
 		}
 	}
 
+	/* Backdrop fade out */
+	.palette-backdrop-exit {
+		animation: backdrop-fade-out 0.15s ease-out forwards;
+	}
+
+	@keyframes backdrop-fade-out {
+		from {
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+		to {
+			background-color: rgba(0, 0, 0, 0);
+		}
+	}
+
 	/* Palette container slides down with gentle spring */
 	.palette-container {
 		animation: palette-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -305,12 +335,34 @@
 		}
 	}
 
+	/* Palette container exit */
+	.palette-container-exit {
+		animation: palette-leave 0.15s ease-out forwards;
+	}
+
+	@keyframes palette-leave {
+		from {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+		to {
+			opacity: 0;
+			transform: scale(0.97) translateY(-4px);
+		}
+	}
+
 	/* Accessibility: respect reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.palette-backdrop {
 			animation: none;
 		}
+		.palette-backdrop-exit {
+			animation: none;
+		}
 		.palette-container {
+			animation: none;
+		}
+		.palette-container-exit {
 			animation: none;
 		}
 	}

@@ -166,11 +166,9 @@
 			repeatLastTransformation();
 		}
 
-		// Escape to hide result or close palette
+		// Escape to hide result (palette handles its own escape)
 		if (e.key === 'Escape') {
-			if (isPaletteOpen) {
-				isPaletteOpen = false;
-			} else if (resultVisible) {
+			if (resultVisible && !isPaletteOpen) {
 				resultVisible = false;
 			}
 		}
@@ -190,40 +188,53 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<div class="max-w-4xl mx-auto">
-	<!-- Header -->
-	<div class="flex items-center justify-between mb-8">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">ClipForm</h1>
-			<p class="text-gray-500 dark:text-gray-400 text-sm">
-				Click a template to transform clipboard text instantly
+<div class="max-w-4xl mx-auto pt-8">
+	<!-- Hero Header -->
+	<div class="relative mb-16 text-center">
+		<!-- Refined blue backdrop glow -->
+		<div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[1700px] h-[1200px] pointer-events-none">
+			<div class="absolute inset-0 bg-linear-to-b from-blue-400/15 to-transparent rounded-[100%] blur-[80px]"></div>
+		</div>
+		
+		<div class="relative">
+			<div class="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-200 dark:border-blue-500/20">
+				<span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+				Ready to transform
+			</div>
+			<h1 class="text-4xl sm:text-5xl font-bold mb-4">
+				<span class="text-gray-900 dark:text-gray-100">Clip</span><span class="wobble-text">Form</span>
+			</h1>
+			<p class="text-gray-500 dark:text-gray-400 text-lg max-w-md mx-auto">
+				Transform your clipboard text instantly with one click
 			</p>
 		</div>
 	</div>
 
 	<!-- Repeat Last Bar -->
 	{#if lastUsedTemplate}
-		<div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+		<div class="mb-12 p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<RotateCcw size={18} class="text-gray-400 dark:text-gray-500" />
+					<div class="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md shadow-blue-500/20">
+						<RotateCcw size={16} class="text-white" />
+					</div>
 					<div>
-						<span class="text-sm text-gray-500 dark:text-gray-400">Repeat last:</span>
-						<span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-1">{lastUsedTemplate.name}</span>
+						<span class="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Quick repeat</span>
+						<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{lastUsedTemplate.name}</p>
 					</div>
 				</div>
 
 				<button
 					onclick={repeatLastTransformation}
 					disabled={isRepeatProcessing}
-					class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait transition-colors"
+					class="btn btn-primary btn-md"
 				>
 					{#if isRepeatProcessing}
 						<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
 						Processing...
 					{:else}
 						Apply
-						<kbd class="ml-1 px-1.5 py-0.5 bg-blue-500 rounded text-xs">{modKey}+Enter</kbd>
+						<kbd>{modKey}⏎</kbd>
 					{/if}
 				</button>
 			</div>
@@ -232,12 +243,16 @@
 
 	<!-- Starred Templates Section -->
 	{#if $starredTemplates.length > 0}
-		<div class="mb-8">
-			<h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-				Your Templates
-			</h2>
+		<div class="mb-14">
+			<div class="flex items-center gap-2 mb-6">
+				<div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
+				<h2 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-3">
+					Your Templates
+				</h2>
+				<div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
+			</div>
 
-			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
 				{#each $starredTemplates as template (template.id)}
 					<TemplateCard {template} onTransform={handleTransformResult} onFirefoxPaste={handleFirefoxPaste} />
 				{/each}
@@ -245,23 +260,34 @@
 		</div>
 	{:else}
 		<!-- Empty state -->
-		<div class="mb-8 p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center">
-			<p class="text-gray-500 dark:text-gray-400 mb-4">
-				No starred templates yet. Star your favorites for quick access!
-			</p>
-			<div class="flex items-center justify-center gap-4">
-				<a
-					href="/templates"
-					class="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-				>
-					Browse Templates
-				</a>
-				<button
-					onclick={() => isPaletteOpen = true}
-					class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-				>
-					Search ({modKey}+K)
-				</button>
+		<div class="mb-14 p-12 relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+			<!-- Decorative elements -->
+			<div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-2xl"></div>
+			<div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-500/10 to-orange-500/10 rounded-full blur-2xl"></div>
+			
+			<div class="relative text-center">
+				<div class="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-200/50 dark:border-blue-500/20">
+					<Plus size={28} class="text-blue-500 dark:text-blue-400" />
+				</div>
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Get started with templates</h3>
+				<p class="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+					Star your favorite templates for quick access, or browse all available transformations.
+				</p>
+				<div class="flex items-center justify-center gap-3">
+					<a
+						href="/templates"
+						class="btn btn-primary btn-md"
+					>
+						Browse Templates
+					</a>
+					<button
+						onclick={() => isPaletteOpen = true}
+						class="btn btn-secondary btn-md"
+					>
+						<Command size={14} />
+						Quick Search
+					</button>
+				</div>
 			</div>
 		</div>
 	{/if}
@@ -276,13 +302,15 @@
 	onHide={hideResult}
 	/>
 	<!-- Search Hint -->
-	<div class="m-8 text-center">
+	<div class="mt-14 text-center">
 		<button
 			onclick={() => isPaletteOpen = true}
-			class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+			class="btn btn-secondary btn-md group"
 		>
-			<Command size={16} />
-			Press <kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs font-medium">{modKey}+K</kbd> to search all templates
+			<Command size={15} class="text-gray-400 group-hover:text-blue-500 transition-colors" />
+			<span>Press</span>
+			<kbd>{modKey}+K</kbd>
+			<span>to search all templates</span>
 		</button>
 	</div>
 

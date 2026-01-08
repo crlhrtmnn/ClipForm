@@ -107,7 +107,7 @@
 		</div>
 		<button
 			onclick={() => goto('/templates/new')}
-			class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+			class="btn btn-primary btn-md"
 		>
 			<Plus size={20} />
 			New Template
@@ -115,7 +115,7 @@
 	</div>
 
 	<!-- Search and Filters -->
-	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+	<div class="page-card p-4 mb-6">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<!-- Search -->
 			<div class="relative">
@@ -149,14 +149,14 @@
 		<div class="flex items-center gap-2 mt-4">
 			<button
 				onclick={handleExport}
-				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+				class="btn btn-secondary btn-sm"
 			>
 				<Download size={16} />
 				Export All
 			</button>
 			<button
 				onclick={handleImport}
-				class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+				class="btn btn-secondary btn-sm"
 			>
 				<Upload size={16} />
 				Import
@@ -166,11 +166,11 @@
 
 	<!-- Templates Grid -->
 	{#if filteredTemplates.length === 0}
-		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+		<div class="page-card p-12 text-center">
 			<p class="text-gray-500 dark:text-gray-400 mb-4">No templates found</p>
 			<button
 				onclick={() => goto('/templates/new')}
-				class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+				class="btn btn-primary btn-md"
 			>
 				<Plus size={18} />
 				Create Your First Template
@@ -179,7 +179,7 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each filteredTemplates as template (template.id)}
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
+				<div class="page-card p-4 hover:shadow-md transition-shadow">
 					<!-- Header -->
 					<div class="flex items-start justify-between mb-3">
 						<div class="flex-1">
@@ -196,10 +196,10 @@
 						</div>
 						<button
 							onclick={() => templateStore.toggleStar(template.id)}
-							class="text-gray-400 hover:text-yellow-400"
+							class="btn btn-ghost btn-icon btn-sm {template.starred ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}"
 							aria-label="Toggle star"
 						>
-							<Star size={20} class={template.starred ? 'fill-yellow-400 text-yellow-400' : ''} />
+							<Star size={20} class={template.starred ? 'fill-yellow-400' : ''} />
 						</button>
 					</div>
 
@@ -225,21 +225,21 @@
 					<div class="flex items-center gap-2">
 						<button
 							onclick={() => goto(`/templates/${template.id}`)}
-							class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50"
+							class="btn btn-soft-primary btn-sm flex-1"
 						>
 							<Edit size={14} />
 							Edit
 						</button>
 						<button
 							onclick={() => handleDuplicate(template.id)}
-							class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600"
+							class="btn btn-secondary btn-sm btn-icon"
 							title="Duplicate"
 						>
 							<Copy size={14} />
 						</button>
 						<button
 							onclick={() => handleDelete(template.id, template.name)}
-							class="flex items-center justify-center px-3 py-1.5 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50"
+							class="btn btn-soft-danger btn-sm btn-icon"
 							title="Delete"
 						>
 							<Trash2 size={14} />
