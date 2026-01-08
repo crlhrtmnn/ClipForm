@@ -1,4 +1,4 @@
-# ClipForm
+# 📋✨ ClipForm
 
 A fast, one-click text transformation tool. Transform your clipboard content instantly without copy-pasting into chatty.
 
