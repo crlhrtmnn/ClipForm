@@ -8,7 +8,7 @@ A fast, one-click text transformation tool. Transform your clipboard content ins
 
 1. Copy text to your clipboard
 2. Click a template
-3. Done [^1] — transformed text is back in your clipboard
+3. Done [[1]](#confessions) — transformed text is back in your clipboard
 
 No forms, no deleting, no 'Certainly!'. Just one click.
 
@@ -78,7 +78,7 @@ MIT
 
 ## Confessions
 
-[^1]: In Firefox there is one more step because of security stuff: `ctrl + v`. But it looks nice, i swear!
+[1]: In Firefox there is one more step because of security stuff: `ctrl + v`. But it looks nice, i swear!
 
 ---
 
