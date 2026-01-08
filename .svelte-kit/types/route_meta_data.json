@@ -10,6 +10,7 @@
 		"src/routes/+layout.ts"
 	],
 	"/templates/[id]": [
+		"src/routes/templates/[id]/+page.ts",
 		"src/routes/+layout.ts"
 	]
 }
