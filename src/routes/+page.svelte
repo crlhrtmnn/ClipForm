@@ -190,7 +190,7 @@
 
 <div class="max-w-4xl mx-auto pt-8">
 	<!-- Hero Header -->
-	<div class="relative mb-16 text-center">
+	<div class="relative mb-14 text-center">
 		<!-- Refined blue backdrop glow -->
 		<div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[200vw] max-h-[80vh] h-[600px] pointer-events-none">
 			<div class="absolute inset-0 bg-linear-to-b from-blue-400/15 to-transparent rounded-[100%] blur-[80px]"></div>
@@ -205,14 +205,14 @@
 				<span class="text-gray-900 dark:text-gray-100">Clip</span><span class="wobble-text">Form</span>
 			</h1>
 			<p class="text-gray-500 dark:text-gray-400 text-lg max-w-md mx-auto">
-				Transform your clipboard text instantly with one click
+				Transform your clipboard text instantly
 			</p>
 		</div>
 	</div>
 
 	<!-- Repeat Last Bar -->
 	{#if lastUsedTemplate}
-		<div class="mb-12 p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
+		<div class="mb-14 p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
 					<div class="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md shadow-blue-500/20">
@@ -247,7 +247,7 @@
 			<div class="flex items-center gap-2 mb-6">
 				<div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
 				<h2 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-3">
-					Your Templates
+					Starred Templates
 				</h2>
 				<div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
 			</div>
