@@ -1,5 +1,5 @@
 {
-  "name": "markdown-converter",
+  "name": "clipboard-converter",
   "type": "module",
   "private": true,
   "scripts": {

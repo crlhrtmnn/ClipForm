@@ -1,4 +1,4 @@
-# markdown-converter
+# Clipboard Converter
 
 To install dependencies:
 

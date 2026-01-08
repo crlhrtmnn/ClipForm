@@ -39,6 +39,6 @@ declare module "$app/types" {
 		};
 		Pathname(): "/" | "/templates" | "/templates/" | "/templates/new" | "/templates/new/" | `/templates/${string}` & {} | `/templates/${string}/` & {};
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
-		Asset(): string & {};
+		Asset(): "/favicon.png" | string & {};
 	}
 }

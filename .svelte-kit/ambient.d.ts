@@ -82,7 +82,6 @@ declare module '$env/static/private' {
 	export const ZDOTDIR: string;
 	export const LESSOPEN: string;
 	export const USER: string;
-	export const GIT_PAGER: string;
 	export const VSCODE_GIT_IPC_HANDLE: string;
 	export const DISPLAY: string;
 	export const npm_lifecycle_event: string;
@@ -199,7 +198,6 @@ declare module '$env/dynamic/private' {
 		ZDOTDIR: string;
 		LESSOPEN: string;
 		USER: string;
-		GIT_PAGER: string;
 		VSCODE_GIT_IPC_HANDLE: string;
 		DISPLAY: string;
 		npm_lifecycle_event: string;

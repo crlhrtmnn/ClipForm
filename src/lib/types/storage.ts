@@ -4,10 +4,10 @@ import type { Template } from './template';
  * localStorage keys
  */
 export const STORAGE_KEYS = {
-	TEMPLATES: 'markdown-converter:templates',
-	SETTINGS: 'markdown-converter:settings',
-	RECENT_TEMPLATES: 'markdown-converter:recent',
-	VERSION: 'markdown-converter:version'
+	TEMPLATES: 'clipboard-converter:templates',
+	SETTINGS: 'clipboard-converter:settings',
+	RECENT_TEMPLATES: 'clipboard-converter:recent',
+	VERSION: 'clipboard-converter:version'
 } as const;
 
 /**

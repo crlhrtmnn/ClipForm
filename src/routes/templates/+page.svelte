@@ -40,7 +40,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = `markdown-converter-templates-${new Date().toISOString().split('T')[0]}.json`;
+		a.download = `clipboard-converter-templates-${new Date().toISOString().split('T')[0]}.json`;
 		a.click();
 		URL.revokeObjectURL(url);
 		toast.success('Templates exported successfully!');

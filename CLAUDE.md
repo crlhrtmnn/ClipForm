@@ -1,4 +1,4 @@
-# Markdown Text Converter
+# Clipboard Converter
 
 A SvelteKit app for quickly transforming text using customizable templates. One-click clipboard-to-clipboard conversion.
 
