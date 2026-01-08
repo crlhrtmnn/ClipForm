@@ -38,7 +38,7 @@
 			const estimatedHeight = popoverHeight || 24;
 
 			x = rect.left + (rect.width - estimatedWidth) / 2;
-			// y = rect.top + (rect.height - estimatedHeight) / 2;
+			y = rect.top + (rect.height - estimatedHeight) / 2;
 
 			placement = 'inside';
 			position = { x, y, placement };
