@@ -25,7 +25,14 @@
 
 	// Load template on mount
 	onMount(() => {
-		template = templateStore.getById(templateId);
+		const id = templateId;
+		if (!id) {
+			// Gracefully handle missing ID by redirecting back
+			goto('/templates');
+			return;
+		}
+		
+		template = templateStore.getById(id);
 		if (!template) {
 			toast.error('Template not found');
 			goto('/templates');
@@ -68,6 +75,13 @@
 	});
 
 	function handleSave() {
+		const id = templateId;
+		if (!id) {
+			// Gracefully handle missing ID
+			goto('/templates');
+			return;
+		}
+		
 		if (!name.trim()) {
 			toast.error('Template name is required');
 			return;
@@ -83,7 +97,7 @@
 			.map((t) => t.trim())
 			.filter((t) => t.length > 0);
 
-		templateStore.update(templateId, {
+		templateStore.update(id, {
 			name: name.trim(),
 			description: description.trim(),
 			category: category.trim(),
@@ -97,13 +111,18 @@
 	}
 
 	function handleDelete() {
-		if (!template) return;
+		const id = templateId;
+		if (!template || !id) {
+			// Gracefully handle missing template or ID
+			goto('/templates');
+			return;
+		}
 
 		uiStore.showModal(
 			'Delete Template',
 			`Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
 			() => {
-				templateStore.delete(templateId);
+				templateStore.delete(id);
 				toast.success('Template deleted');
 				goto('/templates');
 			}
