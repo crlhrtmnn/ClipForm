@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { Transformation, TransformationType } from '$lib/types/template';
+	import type { Transformation, TransformationType, CaptureTransformation, CaptureReplaceTransformation, InsertCapturedTransformation, JsonTransformation } from '$lib/types/template';
 	import { getTransformationName, validateRegex } from '$lib/services/transformEngine';
+	import { detectPattern } from '$lib/services/patternDetector';
 	import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-svelte';
 
 	interface Props {
@@ -15,6 +16,12 @@
 		string,
 		{ value: TransformationType; label: string }[]
 	> = {
+		Capture: [
+			{ value: 'capture_first_match', label: 'Capture First Match' },
+			{ value: 'capture_last_match', label: 'Capture Last Match' },
+			{ value: 'capture_replace', label: 'Capture Replace' },
+			{ value: 'insert_captured', label: 'Insert Captured' }
+		],
 		Add: [
 			{ value: 'add_prefix', label: 'Add Prefix' },
 			{ value: 'add_suffix', label: 'Add Suffix' },
@@ -31,7 +38,8 @@
 		Replace: [{ value: 'regex_replace', label: 'Regex Replace' }],
 		Transform: [
 			{ value: 'to_uppercase', label: 'To Uppercase' },
-			{ value: 'to_lowercase', label: 'To Lowercase' }
+			{ value: 'to_lowercase', label: 'To Lowercase' },
+			{ value: 'json_beautify', label: 'JSON Beautify' }
 		],
 		Reorder: [
 			{ value: 'sort_lines', label: 'Sort Lines' },
@@ -45,12 +53,33 @@
 	let selectedTypeToAdd = $state('');
 
 	function addTransformation(type: TransformationType) {
-		const newTransformation: Transformation = {
+		let newTransformation: Transformation;
+		const base = {
 			id: `trans-${Date.now()}`,
 			type: type,
 			enabled: true,
 			order: transformations.length + 1
 		};
+
+		// Initialize with type-specific defaults
+		switch (type) {
+			case 'capture_first_match':
+			case 'capture_last_match':
+				newTransformation = { ...base, type, example: '', slotName: 'captured' } as CaptureTransformation;
+				break;
+			case 'capture_replace':
+				newTransformation = { ...base, type, slotName: 'captured', replacement: '' } as CaptureReplaceTransformation;
+				break;
+			case 'insert_captured':
+				newTransformation = { ...base, type, slotName: 'captured', position: 'end', format: '\n\n{value}' } as InsertCapturedTransformation;
+				break;
+			case 'json_beautify':
+				newTransformation = { ...base, type, indent: 2 } as JsonTransformation;
+				break;
+			default:
+				newTransformation = base as Transformation;
+		}
+
 		transformations = [...transformations, newTransformation];
 		ontransformationschange(transformations);
 
@@ -98,6 +127,25 @@
 	function updateTransformation(id: string, updates: Partial<Transformation>) {
 		transformations = transformations.map((t) => (t.id === id ? { ...t, ...updates } : t));
 		ontransformationschange(transformations);
+	}
+
+	// Get available capture slot names from transformations defined before the current one
+	function getAvailableCaptureSlots(beforeIndex: number): string[] {
+		const slots = new Set<string>();
+		for (let i = 0; i < beforeIndex; i++) {
+			const t = transformations[i];
+			if ((t.type === 'capture_first_match' || t.type === 'capture_last_match') && 'slotName' in t) {
+				slots.add(t.slotName);
+			}
+		}
+		return Array.from(slots);
+	}
+
+	// Get detected pattern description for an example
+	function getDetectedPatternType(example: string): string {
+		if (!example || !example.trim()) return '';
+		const detected = detectPattern(example);
+		return detected.description;
 	}
 
 </script>
@@ -279,6 +327,184 @@
 										value: parseInt((e.target as HTMLInputElement).value) || 1
 									})}
 								min="1"
+								class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+							/>
+						</div>
+					{:else if transformation.type === 'capture_first_match' || transformation.type === 'capture_last_match'}
+						<div class="space-y-2">
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Example (paste a sample to auto-detect pattern)
+								</label>
+								<input
+									type="text"
+									value={('example' in transformation && transformation.example) || ''}
+									oninput={(e) =>
+										updateTransformation(transformation.id, {
+											example: (e.target as HTMLInputElement).value
+										})}
+									placeholder="e.g., 2026-01-23 01:00:00.073"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+								/>
+								{#if 'example' in transformation && transformation.example}
+									{@const detectedType = getDetectedPatternType(transformation.example)}
+									{#if detectedType}
+										<p class="mt-1 text-sm text-green-600 dark:text-green-400">
+											Detected: {detectedType}
+										</p>
+									{/if}
+								{/if}
+							</div>
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Slot Name
+								</label>
+								<input
+									type="text"
+									value={('slotName' in transformation && transformation.slotName) || 'captured'}
+									oninput={(e) =>
+										updateTransformation(transformation.id, {
+											slotName: (e.target as HTMLInputElement).value
+										})}
+									placeholder="e.g., timestamp"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+								/>
+							</div>
+						</div>
+					{:else if transformation.type === 'capture_replace'}
+						{@const availableSlots = getAvailableCaptureSlots(index)}
+						<div class="space-y-2">
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Capture Slot
+								</label>
+								{#if availableSlots.length > 0}
+									<select
+										value={('slotName' in transformation && transformation.slotName) || ''}
+										onchange={(e) =>
+											updateTransformation(transformation.id, {
+												slotName: (e.target as HTMLSelectElement).value
+											})}
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+									>
+										{#each availableSlots as slot}
+											<option value={slot}>{slot}</option>
+										{/each}
+									</select>
+								{:else}
+									<input
+										type="text"
+										value={('slotName' in transformation && transformation.slotName) || 'captured'}
+										oninput={(e) =>
+											updateTransformation(transformation.id, {
+												slotName: (e.target as HTMLInputElement).value
+											})}
+										placeholder="e.g., timestamp"
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+									/>
+									<p class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+										No capture slots defined yet. Add a Capture First/Last Match transformation first.
+									</p>
+								{/if}
+							</div>
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Replacement (leave empty to delete matches)
+								</label>
+								<input
+									type="text"
+									value={('replacement' in transformation && transformation.replacement) || ''}
+									oninput={(e) =>
+										updateTransformation(transformation.id, {
+											replacement: (e.target as HTMLInputElement).value
+										})}
+									placeholder="Leave empty to delete"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+								/>
+							</div>
+						</div>
+					{:else if transformation.type === 'insert_captured'}
+						{@const availableSlots = getAvailableCaptureSlots(index)}
+						<div class="space-y-2">
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Capture Slot
+								</label>
+								{#if availableSlots.length > 0}
+									<select
+										value={('slotName' in transformation && transformation.slotName) || ''}
+										onchange={(e) =>
+											updateTransformation(transformation.id, {
+												slotName: (e.target as HTMLSelectElement).value
+											})}
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+									>
+										{#each availableSlots as slot}
+											<option value={slot}>{slot}</option>
+										{/each}
+									</select>
+								{:else}
+									<input
+										type="text"
+										value={('slotName' in transformation && transformation.slotName) || 'captured'}
+										oninput={(e) =>
+											updateTransformation(transformation.id, {
+												slotName: (e.target as HTMLInputElement).value
+											})}
+										placeholder="e.g., timestamp"
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+									/>
+									<p class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+										No capture slots defined yet. Add a Capture First/Last Match transformation first.
+									</p>
+								{/if}
+							</div>
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Position
+								</label>
+								<select
+									value={('position' in transformation && transformation.position) || 'end'}
+									onchange={(e) =>
+										updateTransformation(transformation.id, {
+											position: (e.target as HTMLSelectElement).value as 'start' | 'end'
+										})}
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+								>
+									<option value="start">Start</option>
+									<option value="end">End</option>
+								</select>
+							</div>
+							<div>
+								<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Format (use {'{value}'} as placeholder)
+								</label>
+								<input
+									type="text"
+									value={('format' in transformation && transformation.format) || '\n\n{value}'}
+									oninput={(e) =>
+										updateTransformation(transformation.id, {
+											format: (e.target as HTMLInputElement).value
+										})}
+									placeholder="e.g., \n\nTimestamp: {'{value}'}"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+								/>
+							</div>
+						</div>
+					{:else if transformation.type === 'json_beautify'}
+						<div>
+							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+								Indent Spaces
+							</label>
+							<input
+								type="number"
+								value={('indent' in transformation && transformation.indent) || 2}
+								oninput={(e) =>
+									updateTransformation(transformation.id, {
+										indent: parseInt((e.target as HTMLInputElement).value) || 2
+									})}
+								min="1"
+								max="8"
 								class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 							/>
 						</div>

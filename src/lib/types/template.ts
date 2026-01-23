@@ -15,7 +15,12 @@ export type TransformationType =
 	| 'reverse_lines'
 	| 'number_lines'
 	| 'indent'
-	| 'dedent';
+	| 'dedent'
+	| 'capture_first_match'
+	| 'capture_last_match'
+	| 'capture_replace'
+	| 'insert_captured'
+	| 'json_beautify';
 
 /**
  * Base transformation operation
@@ -68,13 +73,68 @@ export interface NumberTransformation extends BaseTransformation {
 }
 
 /**
+ * Capture transformation - captures first/last match of auto-detected pattern
+ */
+export interface CaptureTransformation extends BaseTransformation {
+	type: 'capture_first_match' | 'capture_last_match';
+	example: string; // User-provided example for auto-detect
+	slotName: string; // Name of capture slot (e.g., "timestamp")
+}
+
+/**
+ * Capture replace - replaces all matches of a captured pattern
+ */
+export interface CaptureReplaceTransformation extends BaseTransformation {
+	type: 'capture_replace';
+	slotName: string; // Which capture's pattern to use
+	replacement: string; // What to replace with (default: "")
+}
+
+/**
+ * Insert captured - inserts a captured value at start/end
+ */
+export interface InsertCapturedTransformation extends BaseTransformation {
+	type: 'insert_captured';
+	slotName: string;
+	position: 'start' | 'end';
+	format: string; // Template like "\n\nTimestamp: {value}"
+}
+
+/**
+ * JSON beautify transformation
+ */
+export interface JsonTransformation extends BaseTransformation {
+	type: 'json_beautify';
+	indent: number; // Default: 2
+}
+
+/**
+ * Captured value stored during transformation chain
+ */
+export interface CapturedValue {
+	value: string;
+	pattern: RegExp;
+}
+
+/**
+ * Context passed through transformation chain
+ */
+export interface TransformContext {
+	captures: Map<string, CapturedValue>;
+}
+
+/**
  * Union type of all transformations
  */
 export type Transformation =
 	| SimpleTransformation
 	| StringTransformation
 	| RegexTransformation
-	| NumberTransformation;
+	| NumberTransformation
+	| CaptureTransformation
+	| CaptureReplaceTransformation
+	| InsertCapturedTransformation
+	| JsonTransformation;
 
 /**
  * Template model

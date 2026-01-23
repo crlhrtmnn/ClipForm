@@ -3,8 +3,15 @@ import type {
 	SimpleTransformation,
 	StringTransformation,
 	RegexTransformation,
-	NumberTransformation
+	NumberTransformation,
+	CaptureTransformation,
+	CaptureReplaceTransformation,
+	InsertCapturedTransformation,
+	JsonTransformation,
+	TransformContext,
+	CapturedValue
 } from '$lib/types/template';
+import { detectPattern } from './patternDetector';
 
 /**
  * Remove all blank lines from text
@@ -150,6 +157,129 @@ export function dedent(text: string, spaces: number = 2): string {
 }
 
 /**
+ * Create an empty transform context
+ */
+export function createContext(): TransformContext {
+	return { captures: new Map() };
+}
+
+/**
+ * Capture first match of a pattern and store in context
+ */
+export function captureFirstMatch(
+	text: string,
+	context: TransformContext,
+	example: string,
+	slotName: string
+): { text: string; context: TransformContext } {
+	const detected = detectPattern(example);
+	const matches = text.match(detected.pattern);
+
+	if (matches && matches.length > 0) {
+		context.captures.set(slotName, {
+			value: matches[0],
+			pattern: detected.pattern
+		});
+	}
+
+	return { text, context };
+}
+
+/**
+ * Capture last match of a pattern and store in context
+ */
+export function captureLastMatch(
+	text: string,
+	context: TransformContext,
+	example: string,
+	slotName: string
+): { text: string; context: TransformContext } {
+	const detected = detectPattern(example);
+	const matches = text.match(detected.pattern);
+
+	if (matches && matches.length > 0) {
+		context.captures.set(slotName, {
+			value: matches[matches.length - 1],
+			pattern: detected.pattern
+		});
+	}
+
+	return { text, context };
+}
+
+/**
+ * Replace all matches of a captured pattern
+ */
+export function captureReplace(
+	text: string,
+	context: TransformContext,
+	slotName: string,
+	replacement: string = ''
+): { text: string; context: TransformContext } {
+	const captured = context.captures.get(slotName);
+	if (!captured) {
+		console.warn(`No captured value found for slot: ${slotName}`);
+		return { text, context };
+	}
+
+	// Create a fresh regex with global flag to replace all occurrences
+	const pattern = new RegExp(captured.pattern.source, 'g');
+	const result = text.replace(pattern, replacement);
+
+	return { text: result, context };
+}
+
+/**
+ * Insert a captured value at start or end
+ */
+export function insertCaptured(
+	text: string,
+	context: TransformContext,
+	slotName: string,
+	position: 'start' | 'end',
+	format: string = '{value}'
+): { text: string; context: TransformContext } {
+	const captured = context.captures.get(slotName);
+	if (!captured) {
+		console.warn(`No captured value found for slot: ${slotName}`);
+		return { text, context };
+	}
+
+	const insertText = format.replace(/\{value\}/g, captured.value);
+
+	if (position === 'start') {
+		return { text: insertText + text, context };
+	} else {
+		return { text: text + insertText, context };
+	}
+}
+
+/**
+ * Beautify JSON objects in text
+ */
+export function jsonBeautify(text: string, indentSpaces: number = 2): string {
+	const lines = text.split('\n');
+	const result: string[] = [];
+
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+			try {
+				const parsed = JSON.parse(trimmed);
+				result.push(JSON.stringify(parsed, null, indentSpaces));
+			} catch {
+				// Not valid JSON, keep original line
+				result.push(line);
+			}
+		} else {
+			result.push(line);
+		}
+	}
+
+	return result.join('\n');
+}
+
+/**
  * Validate regex pattern
  */
 export function validateRegex(pattern: string, flags: string = ''): boolean {
@@ -162,65 +292,102 @@ export function validateRegex(pattern: string, flags: string = ''): boolean {
 }
 
 /**
- * Apply a single transformation to text
+ * Apply a single transformation to text (with context for capture operations)
  */
-export function applyTransformation(text: string, transformation: Transformation): string {
+export function applyTransformationWithContext(
+	text: string,
+	transformation: Transformation,
+	context: TransformContext
+): { text: string; context: TransformContext } {
 	if (!transformation.enabled) {
-		return text;
+		return { text, context };
 	}
 
 	switch (transformation.type) {
 		case 'remove_blank_lines':
-			return removeBlankLines(text);
+			return { text: removeBlankLines(text), context };
 
 		case 'trim_lines':
-			return trimLines(text);
+			return { text: trimLines(text), context };
 
 		case 'to_uppercase':
-			return toUpperCase(text);
+			return { text: toUpperCase(text), context };
 
 		case 'to_lowercase':
-			return toLowerCase(text);
+			return { text: toLowerCase(text), context };
 
 		case 'remove_duplicates':
-			return removeDuplicates(text);
+			return { text: removeDuplicates(text), context };
 
 		case 'sort_lines':
-			return sortLines(text);
+			return { text: sortLines(text), context };
 
 		case 'reverse_lines':
-			return reverseLines(text);
+			return { text: reverseLines(text), context };
 
 		case 'wrap_code_block':
-			return wrapCodeBlock(text, (transformation as StringTransformation).value || '');
+			return { text: wrapCodeBlock(text, (transformation as StringTransformation).value || ''), context };
 
 		case 'add_prefix':
-			return addPrefix(text, (transformation as StringTransformation).value);
+			return { text: addPrefix(text, (transformation as StringTransformation).value), context };
 
 		case 'add_suffix':
-			return addSuffix(text, (transformation as StringTransformation).value);
+			return { text: addSuffix(text, (transformation as StringTransformation).value), context };
 
 		case 'regex_replace': {
 			const regexTrans = transformation as RegexTransformation;
-			return regexReplace(text, regexTrans.pattern, regexTrans.replacement, regexTrans.flags);
+			return { text: regexReplace(text, regexTrans.pattern, regexTrans.replacement, regexTrans.flags), context };
 		}
 
 		case 'number_lines':
-			return numberLines(text, (transformation as NumberTransformation).value || 1);
+			return { text: numberLines(text, (transformation as NumberTransformation).value || 1), context };
 
 		case 'indent':
-			return indent(text, (transformation as NumberTransformation).value || 2);
+			return { text: indent(text, (transformation as NumberTransformation).value || 2), context };
 
 		case 'dedent':
-			return dedent(text, (transformation as NumberTransformation).value || 2);
+			return { text: dedent(text, (transformation as NumberTransformation).value || 2), context };
+
+		case 'capture_first_match': {
+			const captureTrans = transformation as CaptureTransformation;
+			return captureFirstMatch(text, context, captureTrans.example, captureTrans.slotName);
+		}
+
+		case 'capture_last_match': {
+			const captureTrans = transformation as CaptureTransformation;
+			return captureLastMatch(text, context, captureTrans.example, captureTrans.slotName);
+		}
+
+		case 'capture_replace': {
+			const replaceTrans = transformation as CaptureReplaceTransformation;
+			return captureReplace(text, context, replaceTrans.slotName, replaceTrans.replacement);
+		}
+
+		case 'insert_captured': {
+			const insertTrans = transformation as InsertCapturedTransformation;
+			return insertCaptured(text, context, insertTrans.slotName, insertTrans.position, insertTrans.format);
+		}
+
+		case 'json_beautify': {
+			const jsonTrans = transformation as JsonTransformation;
+			return { text: jsonBeautify(text, jsonTrans.indent || 2), context };
+		}
 
 		default:
-			return text;
+			return { text, context };
 	}
 }
 
 /**
- * Apply multiple transformations in order
+ * Apply a single transformation to text (backward compatible, no context)
+ */
+export function applyTransformation(text: string, transformation: Transformation): string {
+	const context = createContext();
+	return applyTransformationWithContext(text, transformation, context).text;
+}
+
+/**
+ * Apply multiple transformations in order (with context threading)
  */
 export function applyTransformations(text: string, transformations: Transformation[]): string {
 	// Sort transformations by order
@@ -228,11 +395,15 @@ export function applyTransformations(text: string, transformations: Transformati
 		.filter((t) => t.enabled)
 		.sort((a, b) => a.order - b.order);
 
-	// Apply each transformation sequentially
+	// Apply each transformation sequentially with context
 	let result = text;
+	let context = createContext();
+
 	for (const transformation of sorted) {
 		try {
-			result = applyTransformation(result, transformation);
+			const output = applyTransformationWithContext(result, transformation, context);
+			result = output.text;
+			context = output.context;
 		} catch (error) {
 			console.error(`Error applying transformation ${transformation.type}:`, error);
 			throw error;
@@ -260,7 +431,12 @@ export function getTransformationName(type: string): string {
 		regex_replace: 'Regex Replace',
 		number_lines: 'Number Lines',
 		indent: 'Indent',
-		dedent: 'Dedent'
+		dedent: 'Dedent',
+		capture_first_match: 'Capture First Match',
+		capture_last_match: 'Capture Last Match',
+		capture_replace: 'Capture Replace',
+		insert_captured: 'Insert Captured',
+		json_beautify: 'JSON Beautify'
 	};
 	return names[type] || type;
 }
